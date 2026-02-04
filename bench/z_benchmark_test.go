@@ -11,15 +11,15 @@ package webp_bench
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"testing"
 
-	chai2010_webp "github.com/chai2010/webp"
+	chai2010_webp "github.com/coalaura/webp"
 	x_image_webp "golang.org/x/image/webp"
 )
 
 func tbLoadData(tb testing.TB, filename string) []byte {
-	data, err := ioutil.ReadFile("../testdata/" + filename)
+	data, err := os.ReadFile("../testdata/" + filename)
 	if err != nil {
 		tb.Fatal(err)
 	}

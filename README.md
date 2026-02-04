@@ -11,10 +11,10 @@ webp
 ```
 
 
-[![Build Status](https://github.com/chai2010/webp/actions/workflows/test.yml/badge.svg)](https://github.com/chai2010/webp/actions/workflows/test.yml)
-[![GoDoc](https://godoc.org/github.com/chai2010/webp?status.svg)](https://pkg.go.dev/github.com/chai2010/webp)
-[![GitHub release](https://img.shields.io/github/v/tag/chai2010/webp.svg?label=release)](https://github.com/chai2010/webp/releases)
-[![license](https://img.shields.io/github/license/chai2010/webp.svg)](https://github.com/chai2010/webp/blob/master/LICENSE)
+[![Build Status](https://github.com/coalaura/webp/actions/workflows/test.yml/badge.svg)](https://github.com/coalaura/webp/actions/workflows/test.yml)
+[![GoDoc](https://godoc.org/github.com/coalaura/webp?status.svg)](https://pkg.go.dev/github.com/coalaura/webp)
+[![GitHub release](https://img.shields.io/github/v/tag/coalaura/webp.svg?label=release)](https://github.com/coalaura/webp/releases)
+[![license](https://img.shields.io/github/license/coalaura/webp.svg)](https://github.com/coalaura/webp/blob/master/LICENSE)
 
 Benchmark
 =========
@@ -28,7 +28,7 @@ Install
 Install `GCC` or `MinGW` ([download here](http://tdm-gcc.tdragon.net/download)) at first,
 and then run these commands:
 
-1. `go get github.com/chai2010/webp`
+1. `go get github.com/coalaura/webp`
 2. `go run hello.go`
 
 
@@ -46,7 +46,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/chai2010/webp"
+	"github.com/coalaura/webp"
 )
 
 func main() {
@@ -104,8 +104,3 @@ if err != nil {
 	log.Fatal(err)
 }
 ```
-
-Give a Star! ⭐
-===============
-
-If you like project, please give it a star. Thanks!

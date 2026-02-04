@@ -1,9 +1,13 @@
 // Copyright 2018 <chaishushan{AT}gmail.com>. All rights reserved.
 // Use of this source code is governed by a Apache-style
 // license that can be found in the LICENSE file.
+// Fork maintained by github.com/coalaura, original see github.com/chai2010/webp
 
-module github.com/chai2010/webp
+module github.com/coalaura/webp
 
 go 1.17
 
-require golang.org/x/image v0.0.0-20211028202545-6944b10bf410
+require (
+	github.com/chai2010/webp v1.4.0
+	golang.org/x/image v0.0.0-20211028202545-6944b10bf410
+)
