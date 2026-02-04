@@ -9,7 +9,7 @@ import "C"
 import "unsafe"
 
 const (
-	WEBP_DECODER_ABI_VERSION = 0x0209 // MAJOR(8b) + MINOR(8b)
+	WEBP_DECODER_ABI_VERSION = 0x0210 // MAJOR(8b) + MINOR(8b)
 )
 
 const (
