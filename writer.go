@@ -15,13 +15,15 @@ import (
 	"reflect"
 )
 
-const DefaulQuality = 90
+const DefaultQuality = 90
+const DefaultMethod = 4
 
 // Options are the encoding parameters.
 type Options struct {
 	Lossless bool
 	Quality  float32 // 0 ~ 100
 	Exact    bool    // Preserve RGB values in transparent area.
+	Method   int     // Quality/speed trade-off (0=fast, 6=slower-better)
 }
 
 type colorModeler interface {
@@ -45,21 +47,25 @@ func Encode(w io.Writer, m image.Image, opt *Options) (err error) {
 
 func encode(w io.Writer, m image.Image, opt *Options) (err error) {
 	var output []byte
+	method := DefaultMethod
+	if opt != nil {
+		method = opt.Method
+	}
 	if opt != nil && opt.Lossless {
 		switch m := adjustImage(m).(type) {
 		case *image.Gray:
-			if output, err = EncodeLosslessGray(m); err != nil {
+			if output, err = EncodeLosslessGray(m, method); err != nil {
 				return
 			}
 		case *RGBImage:
-			if output, err = EncodeLosslessRGB(m); err != nil {
+			if output, err = EncodeLosslessRGB(m, method); err != nil {
 				return
 			}
 		case *image.RGBA:
 			if opt.Exact {
-				output, err = EncodeExactLosslessRGBA(m)
+				output, err = EncodeExactLosslessRGBA(m, method)
 			} else {
-				output, err = EncodeLosslessRGBA(m)
+				output, err = EncodeLosslessRGBA(m, method)
 			}
 			if err != nil {
 				return
@@ -68,22 +74,22 @@ func encode(w io.Writer, m image.Image, opt *Options) (err error) {
 			panic("image/webp: Encode, unreachable!")
 		}
 	} else {
-		quality := float32(DefaulQuality)
+		quality := float32(DefaultQuality)
 		if opt != nil {
 			quality = opt.Quality
 		}
 
 		switch m := adjustImage(m).(type) {
 		case *image.Gray:
-			if output, err = EncodeGray(m, quality); err != nil {
+			if output, err = EncodeGray(m, quality, method); err != nil {
 				return
 			}
 		case *RGBImage:
-			if output, err = EncodeRGB(m, quality); err != nil {
+			if output, err = EncodeRGB(m, quality, method); err != nil {
 				return
 			}
 		case *image.RGBA:
-			if output, err = EncodeRGBA(m, quality); err != nil {
+			if output, err = EncodeRGBA(m, quality, method); err != nil {
 				return
 			}
 		default:

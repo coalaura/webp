@@ -111,12 +111,14 @@ func C_webpEncodeGray(
 	pix *C_uint8_t,
 	width C_int, height C_int, stride C_int,
 	quality_factor C_float,
+	method C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeGray(
 		(*C.uint8_t)(pix),
 		(C.int)(width), (C.int)(height), (C.int)(stride),
 		(C.float)(quality_factor),
+		(C.int)(method),
 		(*C.size_t)(output_size),
 	))
 }
@@ -125,12 +127,14 @@ func C_webpEncodeRGB(
 	pix *C_uint8_t,
 	width C_int, height C_int, stride C_int,
 	quality_factor C_float,
+	method C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeRGB(
 		(*C.uint8_t)(pix),
 		(C.int)(width), (C.int)(height), (C.int)(stride),
 		(C.float)(quality_factor),
+		(C.int)(method),
 		(*C.size_t)(output_size),
 	))
 }
@@ -139,12 +143,14 @@ func C_webpEncodeRGBA(
 	pix *C_uint8_t,
 	width C_int, height C_int, stride C_int,
 	quality_factor C_float,
+	method C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeRGBA(
 		(*C.uint8_t)(pix),
 		(C.int)(width), (C.int)(height), (C.int)(stride),
 		(C.float)(quality_factor),
+		(C.int)(method),
 		(*C.size_t)(output_size),
 	))
 }
@@ -152,11 +158,13 @@ func C_webpEncodeRGBA(
 func C_webpEncodeLosslessGray(
 	pix *C_uint8_t,
 	width C_int, height C_int, stride C_int,
+	method C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeLosslessGray(
 		(*C.uint8_t)(pix),
 		(C.int)(width), (C.int)(height), (C.int)(stride),
+		(C.int)(method),
 		(*C.size_t)(output_size),
 	))
 }
@@ -164,11 +172,13 @@ func C_webpEncodeLosslessGray(
 func C_webpEncodeLosslessRGB(
 	pix *C_uint8_t,
 	width C_int, height C_int, stride C_int,
+	method C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeLosslessRGB(
 		(*C.uint8_t)(pix),
 		(C.int)(width), (C.int)(height), (C.int)(stride),
+		(C.int)(method),
 		(*C.size_t)(output_size),
 	))
 }
@@ -177,12 +187,14 @@ func C_webpEncodeLosslessRGBA(
 	exact C_int,
 	pix *C_uint8_t,
 	width C_int, height C_int, stride C_int,
+	method C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeLosslessRGBA(
 		(C.int)(exact),
 		(*C.uint8_t)(pix),
 		(C.int)(width), (C.int)(height), (C.int)(stride),
+		(C.int)(method),
 		(*C.size_t)(output_size),
 	))
 }

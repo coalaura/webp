@@ -80,6 +80,7 @@ func TestEncode(t *testing.T) {
 			Lossless: v.Lossless,
 			Quality:  v.Quality,
 			Exact:    v.Exact,
+			Method:   DefaultMethod,
 		})
 		if err != nil {
 			t.Fatalf("%d: %v", i, err)

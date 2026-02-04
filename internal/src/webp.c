@@ -169,11 +169,20 @@ int webpDecodeRGBAToSize(const uint8_t* data, size_t data_size,
 
 uint8_t* webpEncodeGray(
 	const uint8_t* gray, int width, int height, int stride, float quality_factor,
-	size_t* output_size
+	int method, size_t* output_size
 ) {
 	uint8_t* output;
 	uint8_t* rgb;
 	int x, y;
+	WebPConfig config;
+	WebPPicture pic;
+	WebPMemoryWriter wrt;
+	int ok;
+
+	if(!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, quality_factor)) {
+		return NULL;
+	}
+	config.method = method;
 
 	if((rgb = (uint8_t*)malloc(width*height*3)) == NULL) {
 		return NULL;
@@ -189,40 +198,117 @@ uint8_t* webpEncodeGray(
 		}
 	}
 
-	*output_size = WebPEncodeRGB(rgb, width, height, width*3, quality_factor, &output);
+	if(!WebPPictureInit(&pic)) {
+		free(rgb);
+		return NULL;
+	}
+	pic.width = width;
+	pic.height = height;
+	pic.writer = WebPMemoryWrite;
+	pic.custom_ptr = &wrt;
+	WebPMemoryWriterInit(&wrt);
+
+	ok = WebPPictureImportRGB(&pic, rgb, width*3) && WebPEncode(&config, &pic);
+	WebPPictureFree(&pic);
 	free(rgb);
-	return output;
+
+	if(!ok) {
+		WebPMemoryWriterClear(&wrt);
+		return NULL;
+	}
+	*output_size = wrt.size;
+	return wrt.mem;
 }
 
 uint8_t* webpEncodeRGB(
 	const uint8_t* rgb, int width, int height, int stride, float quality_factor,
-	size_t* output_size
+	int method, size_t* output_size
 ) {
-	uint8_t* output = NULL;
-	*output_size = WebPEncodeRGB(rgb, width, height, stride, quality_factor, &output);
-	return output;
+	WebPConfig config;
+	WebPPicture pic;
+	WebPMemoryWriter wrt;
+	int ok;
+
+	if(!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, quality_factor)) {
+		return NULL;
+	}
+	config.method = method;
+
+	if(!WebPPictureInit(&pic)) {
+		return NULL;
+	}
+	pic.width = width;
+	pic.height = height;
+	pic.writer = WebPMemoryWrite;
+	pic.custom_ptr = &wrt;
+	WebPMemoryWriterInit(&wrt);
+
+	ok = WebPPictureImportRGB(&pic, rgb, stride) && WebPEncode(&config, &pic);
+	WebPPictureFree(&pic);
+
+	if(!ok) {
+		WebPMemoryWriterClear(&wrt);
+		return NULL;
+	}
+	*output_size = wrt.size;
+	return wrt.mem;
 }
 
 uint8_t* webpEncodeRGBA(
 	const uint8_t* rgba, int width, int height, int stride, float quality_factor,
-	size_t* output_size
+	int method, size_t* output_size
 ) {
-	uint8_t* output = NULL;
-	*output_size = WebPEncodeRGBA(rgba, width, height, stride, quality_factor, &output);
-	return output;
+	WebPConfig config;
+	WebPPicture pic;
+	WebPMemoryWriter wrt;
+	int ok;
+
+	if(!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, quality_factor)) {
+		return NULL;
+	}
+	config.method = method;
+
+	if(!WebPPictureInit(&pic)) {
+		return NULL;
+	}
+	pic.width = width;
+	pic.height = height;
+	pic.writer = WebPMemoryWrite;
+	pic.custom_ptr = &wrt;
+	WebPMemoryWriterInit(&wrt);
+
+	ok = WebPPictureImportRGBA(&pic, rgba, stride) && WebPEncode(&config, &pic);
+	WebPPictureFree(&pic);
+
+	if(!ok) {
+		WebPMemoryWriterClear(&wrt);
+		return NULL;
+	}
+	*output_size = wrt.size;
+	return wrt.mem;
 }
 
 
 uint8_t* webpEncodeLosslessGray(
 	const uint8_t* gray, int width, int height, int stride,
-	size_t* output_size
+	int method, size_t* output_size
 ) {
 	uint8_t* output;
 	uint8_t* rgb;
 	int x, y;
+	WebPConfig config;
+	WebPPicture pic;
+	WebPMemoryWriter wrt;
+	int ok;
+
+	if(!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, 100)) {
+		return NULL;
+	}
+	config.lossless = 1;
+	config.method = method;
 
 	if((rgb = (uint8_t*)malloc(width*height*3)) == NULL) {
-		return 0;
+		return NULL;
 	}
 	for(y = 0; y < height; ++y) {
 		const uint8_t* src = gray + y*stride;
@@ -235,25 +321,70 @@ uint8_t* webpEncodeLosslessGray(
 		}
 	}
 
-	*output_size = WebPEncodeLosslessRGB(rgb, width, height, width*3, &output);
+	if(!WebPPictureInit(&pic)) {
+		free(rgb);
+		return NULL;
+	}
+	pic.use_argb = 1;
+	pic.width = width;
+	pic.height = height;
+	pic.writer = WebPMemoryWrite;
+	pic.custom_ptr = &wrt;
+	WebPMemoryWriterInit(&wrt);
+
+	ok = WebPPictureImportRGB(&pic, rgb, width*3) && WebPEncode(&config, &pic);
+	WebPPictureFree(&pic);
 	free(rgb);
-	return output;
+
+	if(!ok) {
+		WebPMemoryWriterClear(&wrt);
+		return NULL;
+	}
+	*output_size = wrt.size;
+	return wrt.mem;
 }
 
 
 uint8_t* webpEncodeLosslessRGB(
 	const uint8_t* rgb, int width, int height, int stride,
-	size_t* output_size
+	int method, size_t* output_size
 ) {
-	uint8_t* output = NULL;
-	*output_size = WebPEncodeLosslessRGB(rgb, width, height, stride, &output);
-	return output;
+	WebPConfig config;
+	WebPPicture pic;
+	WebPMemoryWriter wrt;
+	int ok;
+
+	if(!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, 100)) {
+		return NULL;
+	}
+	config.lossless = 1;
+	config.method = method;
+
+	if(!WebPPictureInit(&pic)) {
+		return NULL;
+	}
+	pic.use_argb = 1;
+	pic.width = width;
+	pic.height = height;
+	pic.writer = WebPMemoryWrite;
+	pic.custom_ptr = &wrt;
+	WebPMemoryWriterInit(&wrt);
+
+	ok = WebPPictureImportRGB(&pic, rgb, stride) && WebPEncode(&config, &pic);
+	WebPPictureFree(&pic);
+
+	if(!ok) {
+		WebPMemoryWriterClear(&wrt);
+		return NULL;
+	}
+	*output_size = wrt.size;
+	return wrt.mem;
 }
 
 
 uint8_t* webpEncodeLosslessRGBA(
 	int exact, const uint8_t* rgba, int width, int height, int stride,
-	size_t* output_size
+	int method, size_t* output_size
 ) {
 	WebPPicture pic;
 	WebPMemoryWriter wrt;
@@ -266,6 +397,7 @@ uint8_t* webpEncodeLosslessRGBA(
 
 	config.lossless = 1;
 	config.exact = exact;
+	config.method = method;
 
 	pic.use_argb = 1;
 	pic.width = width;

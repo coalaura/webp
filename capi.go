@@ -145,7 +145,7 @@ func webpDecodeRGBAToSize(data []byte, width, height int) (pix []byte, err error
 	return
 }
 
-func webpEncodeGray(pix []byte, width, height, stride int, quality float32) (output []byte, err error) {
+func webpEncodeGray(pix []byte, width, height, stride int, quality float32, method int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 || quality < 0.0 {
 		err = errors.New("webpEncodeGray: bad arguments")
 		return
@@ -158,7 +158,7 @@ func webpEncodeGray(pix []byte, width, height, stride int, quality float32) (out
 	var cptr_size C.size_t
 	var cptr = C.webpEncodeGray(
 		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
-		C.int(stride), C.float(quality),
+		C.int(stride), C.float(quality), C.int(method),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
@@ -172,7 +172,7 @@ func webpEncodeGray(pix []byte, width, height, stride int, quality float32) (out
 	return
 }
 
-func webpEncodeRGB(pix []byte, width, height, stride int, quality float32) (output []byte, err error) {
+func webpEncodeRGB(pix []byte, width, height, stride int, quality float32, method int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 || quality < 0.0 {
 		err = errors.New("webpEncodeRGB: bad arguments")
 		return
@@ -185,7 +185,7 @@ func webpEncodeRGB(pix []byte, width, height, stride int, quality float32) (outp
 	var cptr_size C.size_t
 	var cptr = C.webpEncodeRGB(
 		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
-		C.int(stride), C.float(quality),
+		C.int(stride), C.float(quality), C.int(method),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
@@ -199,7 +199,7 @@ func webpEncodeRGB(pix []byte, width, height, stride int, quality float32) (outp
 	return
 }
 
-func webpEncodeRGBA(pix []byte, width, height, stride int, quality float32) (output []byte, err error) {
+func webpEncodeRGBA(pix []byte, width, height, stride int, quality float32, method int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 || quality < 0.0 {
 		err = errors.New("webpEncodeRGBA: bad arguments")
 		return
@@ -212,7 +212,7 @@ func webpEncodeRGBA(pix []byte, width, height, stride int, quality float32) (out
 	var cptr_size C.size_t
 	var cptr = C.webpEncodeRGBA(
 		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
-		C.int(stride), C.float(quality),
+		C.int(stride), C.float(quality), C.int(method),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
@@ -226,7 +226,7 @@ func webpEncodeRGBA(pix []byte, width, height, stride int, quality float32) (out
 	return
 }
 
-func webpEncodeLosslessGray(pix []byte, width, height, stride int) (output []byte, err error) {
+func webpEncodeLosslessGray(pix []byte, width, height, stride int, method int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 {
 		err = errors.New("webpEncodeLosslessGray: bad arguments")
 		return
@@ -239,7 +239,7 @@ func webpEncodeLosslessGray(pix []byte, width, height, stride int) (output []byt
 	var cptr_size C.size_t
 	var cptr = C.webpEncodeLosslessGray(
 		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
-		C.int(stride),
+		C.int(stride), C.int(method),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
@@ -253,7 +253,7 @@ func webpEncodeLosslessGray(pix []byte, width, height, stride int) (output []byt
 	return
 }
 
-func webpEncodeLosslessRGB(pix []byte, width, height, stride int) (output []byte, err error) {
+func webpEncodeLosslessRGB(pix []byte, width, height, stride int, method int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 {
 		err = errors.New("webpEncodeLosslessRGB: bad arguments")
 		return
@@ -266,7 +266,7 @@ func webpEncodeLosslessRGB(pix []byte, width, height, stride int) (output []byte
 	var cptr_size C.size_t
 	var cptr = C.webpEncodeLosslessRGB(
 		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
-		C.int(stride),
+		C.int(stride), C.int(method),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
@@ -280,7 +280,7 @@ func webpEncodeLosslessRGB(pix []byte, width, height, stride int) (output []byte
 	return
 }
 
-func webpEncodeLosslessRGBA(exact int, pix []byte, width, height, stride int) (output []byte, err error) {
+func webpEncodeLosslessRGBA(exact int, pix []byte, width, height, stride int, method int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 {
 		err = errors.New("webpEncodeLosslessRGBA: bad arguments")
 		return
@@ -293,7 +293,7 @@ func webpEncodeLosslessRGBA(exact int, pix []byte, width, height, stride int) (o
 	var cptr_size C.size_t
 	var cptr = C.webpEncodeLosslessRGBA(
 		C.int(exact), (*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
-		C.int(stride),
+		C.int(stride), C.int(method),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
