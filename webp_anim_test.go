@@ -67,3 +67,29 @@ func TestEncodeAll(t *testing.T) {
 		tAssertEQ(t, anim.Delay[i], encoded.Delay[i])
 	}
 }
+
+func TestDecodeConfigAnimated(t *testing.T) {
+	files := []string{
+		"./testdata/animated_1.webp",
+		"./testdata/animated_2.webp",
+	}
+	for _, name := range files {
+		f, err := os.Open(name)
+		tAssertNil(t, err)
+		config, err := DecodeConfigEx(f)
+		f.Close()
+		tAssertNil(t, err)
+		tAssert(t, config.Width > 0 && config.Height > 0, name)
+		tAssert(t, config.HasAnimation, name)
+	}
+}
+
+func TestDecodeConfigStill(t *testing.T) {
+	f, err := os.Open("./testdata/1_webp_ll.webp")
+	tAssertNil(t, err)
+	config, err := DecodeConfigEx(f)
+	f.Close()
+	tAssertNil(t, err)
+	tAssert(t, config.Width > 0 && config.Height > 0)
+	tAssert(t, !config.HasAnimation)
+}

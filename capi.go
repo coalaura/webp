@@ -33,7 +33,7 @@ import (
 	"unsafe"
 )
 
-func webpGetInfo(data []byte) (width, height int, hasAlpha bool, err error) {
+func webpGetInfo(data []byte) (width, height int, hasAlpha bool, hasAnimation bool, format int, err error) {
 	if len(data) == 0 {
 		err = errors.New("webpGetInfo: bad arguments, data is empty")
 		return
@@ -49,6 +49,8 @@ func webpGetInfo(data []byte) (width, height int, hasAlpha bool, err error) {
 	}
 	width, height = int(features.width), int(features.height)
 	hasAlpha = (features.has_alpha != 0)
+	hasAnimation = (features.has_animation != 0)
+	format = int(features.format)
 	return
 }
 

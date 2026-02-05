@@ -10,11 +10,13 @@ import (
 )
 
 type tGetInfoTester struct {
-	Filename string
-	HdrSize  int
-	Width    int
-	Height   int
-	HasAlpha bool
+	Filename     string
+	HdrSize      int
+	Width        int
+	Height       int
+	HasAlpha     bool
+	HasAnimation bool
+	Format       int
 }
 
 func TestGetInfo(t *testing.T) {
@@ -23,7 +25,7 @@ func TestGetInfo(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%d: %v", i, err)
 		}
-		width, height, hasAlpha, err := GetInfo(data)
+		width, height, hasAlpha, hasAnimation, format, err := GetInfo(data)
 		if err != nil {
 			t.Fatalf("%d: %v", i, err)
 		}
@@ -36,14 +38,30 @@ func TestGetInfo(t *testing.T) {
 		if hasAlpha != v.HasAlpha {
 			t.Fatalf("%d: expect = %v, got = %v", i, v.HasAlpha, hasAlpha)
 		}
+		if hasAnimation != v.HasAnimation {
+			t.Fatalf("%d: expect = %v, got = %v", i, v.HasAnimation, hasAnimation)
+		}
+		if format != v.Format {
+			t.Fatalf("%d: expect = %v, got = %v", i, v.Format, format)
+		}
 	}
 }
 
 var tGetInfoTesterList = []tGetInfoTester{
-	tGetInfoTester{
-		Filename: "1_webp_ll.webp",
-		Width:    400,
-		Height:   301,
-		HasAlpha: true,
+	{
+		Filename:     "1_webp_ll.webp",
+		Width:        400,
+		Height:       301,
+		HasAlpha:     true,
+		HasAnimation: false,
+		Format:       2,
+	},
+	{
+		Filename:     "animated_1.webp",
+		Width:        400,
+		Height:       400,
+		HasAlpha:     true,
+		HasAnimation: true,
+		Format:       0,
 	},
 }

@@ -15,6 +15,43 @@ import (
 	"os"
 )
 
+// Config is the same as image.Config but includes alpha and animation metadata.
+type Config struct {
+	ColorModel   color.Model
+	Width        int  // Width in pixels, as read from the bitstream.
+	Height       int  // Height in pixels, as read from the bitstream.
+	HasAlpha     bool // True if the bitstream contains an alpha channel.
+	HasAnimation bool // True if the bitstream is an animation.
+	Format       int  // 0 = undefined (/mixed), 1 = lossy, 2 = lossless
+}
+
+func LoadConfigEx(name string) (config Config, err error) {
+	f, err := os.Open(name)
+	if err != nil {
+		return Config{}, err
+	}
+	defer f.Close()
+
+	header := make([]byte, maxWebpHeaderSize)
+	n, err := f.Read(header)
+	if err != nil && err != io.EOF {
+		return
+	}
+	header = header[:n]
+	width, height, hasAlpha, hasAnimation, format, err := GetInfo(header)
+	if err != nil {
+		return
+	}
+
+	config.Width = width
+	config.Height = height
+	config.ColorModel = color.RGBAModel
+	config.HasAlpha = hasAlpha
+	config.HasAnimation = hasAnimation
+	config.Format = format
+	return
+}
+
 func LoadConfig(name string) (config image.Config, err error) {
 	f, err := os.Open(name)
 	if err != nil {
@@ -28,7 +65,7 @@ func LoadConfig(name string) (config image.Config, err error) {
 		return
 	}
 	header = header[:n]
-	width, height, _, err := GetInfo(header)
+	width, height, _, _, _, err := GetInfo(header)
 	if err != nil {
 		return
 	}
@@ -64,6 +101,28 @@ func Load(name string) (m image.Image, err error) {
 	return
 }
 
+// DecodeConfigEx returns the color model, dimensions and animation flag of a WEBP image
+// without decoding the entire image.
+func DecodeConfigEx(r io.Reader) (config Config, err error) {
+	header := make([]byte, maxWebpHeaderSize)
+	n, err := r.Read(header)
+	if err != nil && err != io.EOF {
+		return
+	}
+	header, err = header[:n], nil
+	width, height, hasAlpha, hasAnimation, format, err := GetInfo(header)
+	if err != nil {
+		return
+	}
+	config.Width = width
+	config.Height = height
+	config.ColorModel = color.RGBAModel
+	config.HasAlpha = hasAlpha
+	config.HasAnimation = hasAnimation
+	config.Format = format
+	return
+}
+
 // DecodeConfig returns the color model and dimensions of a WEBP image without
 // decoding the entire image.
 func DecodeConfig(r io.Reader) (config image.Config, err error) {
@@ -73,7 +132,7 @@ func DecodeConfig(r io.Reader) (config image.Config, err error) {
 		return
 	}
 	header, err = header[:n], nil
-	width, height, _, err := GetInfo(header)
+	width, height, _, _, _, err := GetInfo(header)
 	if err != nil {
 		return
 	}

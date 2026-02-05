@@ -18,7 +18,7 @@ const (
 	maxWebpHeaderSize = 32
 )
 
-func GetInfo(data []byte) (width, height int, hasAlpha bool, err error) {
+func GetInfo(data []byte) (width, height int, hasAlpha bool, hasAnimation bool, format int, err error) {
 	return webpGetInfo(data)
 }
 

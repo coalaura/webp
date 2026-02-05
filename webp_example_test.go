@@ -21,7 +21,7 @@ func xLoadData(filename string) []byte {
 func ExampleGetInfo() {
 	data := xLoadData("1_webp_a.webp")
 
-	width, height, hasAlpha, err := GetInfo(data)
+	width, height, hasAlpha, hasAnimation, format, err := GetInfo(data)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,17 +29,21 @@ func ExampleGetInfo() {
 	fmt.Printf("width: %v\n", width)
 	fmt.Printf("height: %v\n", height)
 	fmt.Printf("hasAlpha: %v\n", hasAlpha)
+	fmt.Printf("hasAnimation: %v\n", hasAnimation)
+	fmt.Printf("format: %v\n", format)
 
 	// Output:
 	// width: 400
 	// height: 301
 	// hasAlpha: true
+	// hasAnimation: false
+	// format: 0
 }
 
 func ExampleGetInfo_noAlpha() {
 	data := xLoadData("video-001.webp")
 
-	width, height, hasAlpha, err := GetInfo(data)
+	width, height, hasAlpha, hasAnimation, format, err := GetInfo(data)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,9 +51,13 @@ func ExampleGetInfo_noAlpha() {
 	fmt.Printf("width: %v\n", width)
 	fmt.Printf("height: %v\n", height)
 	fmt.Printf("hasAlpha: %v\n", hasAlpha)
+	fmt.Printf("hasAnimation: %v\n", hasAnimation)
+	fmt.Printf("format: %v\n", format)
 
 	// Output:
 	// width: 150
 	// height: 103
 	// hasAlpha: false
+	// hasAnimation: false
+	// format: 1
 }
