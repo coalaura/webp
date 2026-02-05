@@ -8,6 +8,5 @@ module github.com/coalaura/webp
 go 1.17
 
 require (
-	github.com/chai2010/webp v1.4.0
 	golang.org/x/image v0.0.0-20211028202545-6944b10bf410
 )
