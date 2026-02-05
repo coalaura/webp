@@ -11,51 +11,53 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.17
+          go-version: 1.23
 
       - run: go version
       - run: go env
-      - run: go test ./...
+      - run: go test .
 
   build-and-test-windows:
     runs-on: windows-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      # https://github.com/golang/go/issues/51007
-      - name: Set up Go
-        uses: actions/setup-go@v2
+      - name: Set up Zig
+        uses: mlugg/setup-zig@v2
         with:
-          go-version: 1.21
+          version: 0.15.2
 
-      - name: Install MinGW
-        run: |
-          choco install mingw
-          echo "MINGW installation complete"
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.23
 
       - run: go version
       - run: go env
-      - run: mingw32-make --version
-      - run: go test ./...
+      - run: go test .
+        env:
+          CGO_ENABLED: 1
+          CC: zig cc -target x86_64-windows-gnu
+          CXX: zig c++ -target x86_64-windows-gnu
 
   build-and-test-macos:
     runs-on: macos-latest
     steps:
       - name: Git checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.17
+          go-version: 1.23
 
       - run: go version
       - run: go env
-      - run: go test ./...
+      - run: go test .
 
