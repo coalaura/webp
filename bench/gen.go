@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build ignore
 // +build ignore
 
 package main
@@ -15,8 +16,8 @@ import (
 	"fmt"
 	"go/format"
 	"io"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -68,7 +69,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = ioutil.WriteFile(*flagOutputFilename, data, 0644)
+	err = os.WriteFile(*flagOutputFilename, data, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -88,7 +89,7 @@ package webp_bench
 
 import (
 	"bytes"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	chai2010_webp "github.com/chai2010/webp"
@@ -96,7 +97,7 @@ import (
 )
 
 func tbLoadData(tb testing.TB, filename string) []byte {
-	data, err := ioutil.ReadFile("../testdata/" + filename)
+	data, err := os.ReadFile("../testdata/" + filename)
 	if err != nil {
 		tb.Fatal(err)
 	}

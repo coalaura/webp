@@ -11,8 +11,8 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -33,7 +33,7 @@ func clearOldGenFiles() {
 		log.Fatal(err)
 	}
 	for i := 0; i < len(ss); i++ {
-		ioutil.WriteFile(ss[i], []byte("#error file removed!!!\n"), 0666)
+		os.WriteFile(ss[i], []byte("#error file removed!!!\n"), 0666)
 		oldGenFiles[ss[i]] = true
 	}
 }
@@ -58,7 +58,7 @@ func genIncludeFiles() {
 		relpath = strings.TrimPrefix(relpath, "internal/libwebp-1.6.0/")
 		newname := "z_libwebp_" + strings.ReplaceAll(relpath, "/", "_")
 
-		ioutil.WriteFile(newname, []byte(fmt.Sprintf(
+		os.WriteFile(newname, []byte(fmt.Sprintf(
 			`// Copyright 2014 <chaishushan{AT}gmail.com>. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
@@ -87,7 +87,7 @@ func printOldGenFiles() {
 }
 
 func parseCMakeListsTxt(filename, varname, ext string) (ss []string) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
