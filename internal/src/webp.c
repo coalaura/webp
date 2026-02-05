@@ -169,7 +169,7 @@ int webpDecodeRGBAToSize(const uint8_t* data, size_t data_size,
 
 uint8_t* webpEncodeGray(
 	const uint8_t* gray, int width, int height, int stride, float quality_factor,
-	int method, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
 ) {
 	uint8_t* output;
 	uint8_t* rgb;
@@ -183,6 +183,9 @@ uint8_t* webpEncodeGray(
 		return NULL;
 	}
 	config.method = method;
+	config.target_size = target_size;
+	config.alpha_quality = alpha_quality;
+	config.autofilter = autofilter;
 
 	if((rgb = (uint8_t*)malloc(width*height*3)) == NULL) {
 		return NULL;
@@ -222,7 +225,7 @@ uint8_t* webpEncodeGray(
 
 uint8_t* webpEncodeRGB(
 	const uint8_t* rgb, int width, int height, int stride, float quality_factor,
-	int method, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
 ) {
 	WebPConfig config;
 	WebPPicture pic;
@@ -233,6 +236,9 @@ uint8_t* webpEncodeRGB(
 		return NULL;
 	}
 	config.method = method;
+	config.target_size = target_size;
+	config.alpha_quality = alpha_quality;
+	config.autofilter = autofilter;
 
 	if(!WebPPictureInit(&pic)) {
 		return NULL;
@@ -256,7 +262,7 @@ uint8_t* webpEncodeRGB(
 
 uint8_t* webpEncodeRGBA(
 	const uint8_t* rgba, int width, int height, int stride, float quality_factor,
-	int method, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
 ) {
 	WebPConfig config;
 	WebPPicture pic;
@@ -267,6 +273,9 @@ uint8_t* webpEncodeRGBA(
 		return NULL;
 	}
 	config.method = method;
+	config.target_size = target_size;
+	config.alpha_quality = alpha_quality;
+	config.autofilter = autofilter;
 
 	if(!WebPPictureInit(&pic)) {
 		return NULL;
@@ -291,7 +300,7 @@ uint8_t* webpEncodeRGBA(
 
 uint8_t* webpEncodeLosslessGray(
 	const uint8_t* gray, int width, int height, int stride,
-	int method, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
 ) {
 	uint8_t* output;
 	uint8_t* rgb;
@@ -306,6 +315,9 @@ uint8_t* webpEncodeLosslessGray(
 	}
 	config.lossless = 1;
 	config.method = method;
+	config.target_size = target_size;
+	config.alpha_quality = alpha_quality;
+	config.autofilter = autofilter;
 
 	if((rgb = (uint8_t*)malloc(width*height*3)) == NULL) {
 		return NULL;
@@ -347,7 +359,7 @@ uint8_t* webpEncodeLosslessGray(
 
 uint8_t* webpEncodeLosslessRGB(
 	const uint8_t* rgb, int width, int height, int stride,
-	int method, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
 ) {
 	WebPConfig config;
 	WebPPicture pic;
@@ -359,6 +371,9 @@ uint8_t* webpEncodeLosslessRGB(
 	}
 	config.lossless = 1;
 	config.method = method;
+	config.target_size = target_size;
+	config.alpha_quality = alpha_quality;
+	config.autofilter = autofilter;
 
 	if(!WebPPictureInit(&pic)) {
 		return NULL;
@@ -384,7 +399,7 @@ uint8_t* webpEncodeLosslessRGB(
 
 uint8_t* webpEncodeLosslessRGBA(
 	int exact, const uint8_t* rgba, int width, int height, int stride,
-	int method, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
 ) {
 	WebPPicture pic;
 	WebPMemoryWriter wrt;
@@ -398,6 +413,9 @@ uint8_t* webpEncodeLosslessRGBA(
 	config.lossless = 1;
 	config.exact = exact;
 	config.method = method;
+	config.target_size = target_size;
+	config.alpha_quality = alpha_quality;
+	config.autofilter = autofilter;
 
 	pic.use_argb = 1;
 	pic.width = width;

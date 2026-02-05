@@ -17,13 +17,17 @@ import (
 
 const DefaultQuality = 90
 const DefaultMethod = 4
+const DefaultAlphaQuality = 100
 
 // Options are the encoding parameters.
 type Options struct {
-	Lossless bool
-	Quality  float32 // 0 ~ 100
-	Exact    bool    // Preserve RGB values in transparent area.
-	Method   int     // Quality/speed trade-off (0=fast, 6=slower-better)
+	Lossless     bool
+	Quality      float32 // 0 ~ 100
+	TargetSize   int     // Target byte size (overrides Quality)
+	AlphaQuality int     // Alpha plane quality 0-100 (default 100)
+	AutoFilter   bool    // Auto-adjust filter for each image
+	Exact        bool    // Preserve RGB values in transparent area.
+	Method       int     // Quality/speed trade-off (0=fast, 6=slower-better)
 }
 
 type colorModeler interface {
@@ -48,24 +52,33 @@ func Encode(w io.Writer, m image.Image, opt *Options) (err error) {
 func encode(w io.Writer, m image.Image, opt *Options) (err error) {
 	var output []byte
 	method := DefaultMethod
+	targetSize := 0
+	alphaQuality := DefaultAlphaQuality
+	autoFilter := false
 	if opt != nil {
 		method = opt.Method
+		targetSize = opt.TargetSize
+		alphaQuality = opt.AlphaQuality
+		if alphaQuality == 0 {
+			alphaQuality = DefaultAlphaQuality
+		}
+		autoFilter = opt.AutoFilter
 	}
 	if opt != nil && opt.Lossless {
 		switch m := adjustImage(m).(type) {
 		case *image.Gray:
-			if output, err = EncodeLosslessGray(m, method); err != nil {
+			if output, err = encodeLosslessGray(m, method, targetSize, alphaQuality, autoFilter); err != nil {
 				return
 			}
 		case *RGBImage:
-			if output, err = EncodeLosslessRGB(m, method); err != nil {
+			if output, err = encodeLosslessRGB(m, method, targetSize, alphaQuality, autoFilter); err != nil {
 				return
 			}
 		case *image.RGBA:
 			if opt.Exact {
-				output, err = EncodeExactLosslessRGBA(m, method)
+				output, err = encodeExactLosslessRGBA(m, method, targetSize, alphaQuality, autoFilter)
 			} else {
-				output, err = EncodeLosslessRGBA(m, method)
+				output, err = encodeLosslessRGBA(m, method, targetSize, alphaQuality, autoFilter)
 			}
 			if err != nil {
 				return
@@ -76,20 +89,22 @@ func encode(w io.Writer, m image.Image, opt *Options) (err error) {
 	} else {
 		quality := float32(DefaultQuality)
 		if opt != nil {
-			quality = opt.Quality
+			if targetSize == 0 {
+				quality = opt.Quality
+			}
 		}
 
 		switch m := adjustImage(m).(type) {
 		case *image.Gray:
-			if output, err = EncodeGray(m, quality, method); err != nil {
+			if output, err = encodeGray(m, quality, method, targetSize, alphaQuality, autoFilter); err != nil {
 				return
 			}
 		case *RGBImage:
-			if output, err = EncodeRGB(m, quality, method); err != nil {
+			if output, err = encodeRGB(m, quality, method, targetSize, alphaQuality, autoFilter); err != nil {
 				return
 			}
 		case *image.RGBA:
-			if output, err = EncodeRGBA(m, quality, method); err != nil {
+			if output, err = encodeRGBA(m, quality, method, targetSize, alphaQuality, autoFilter); err != nil {
 				return
 			}
 		default:

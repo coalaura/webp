@@ -145,8 +145,12 @@ func webpDecodeRGBAToSize(data []byte, width, height int) (pix []byte, err error
 	return
 }
 
-func webpEncodeGray(pix []byte, width, height, stride int, quality float32, method int) (output []byte, err error) {
+func webpEncodeGray(pix []byte, width, height, stride int, quality float32, method int, targetSize int, alphaQuality int, autoFilter int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 || quality < 0.0 {
+		err = errors.New("webpEncodeGray: bad arguments")
+		return
+	}
+	if targetSize < 0 || alphaQuality < 0 || alphaQuality > 100 {
 		err = errors.New("webpEncodeGray: bad arguments")
 		return
 	}
@@ -159,6 +163,7 @@ func webpEncodeGray(pix []byte, width, height, stride int, quality float32, meth
 	var cptr = C.webpEncodeGray(
 		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
 		C.int(stride), C.float(quality), C.int(method),
+		C.int(targetSize), C.int(alphaQuality), C.int(autoFilter),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
@@ -172,8 +177,12 @@ func webpEncodeGray(pix []byte, width, height, stride int, quality float32, meth
 	return
 }
 
-func webpEncodeRGB(pix []byte, width, height, stride int, quality float32, method int) (output []byte, err error) {
+func webpEncodeRGB(pix []byte, width, height, stride int, quality float32, method int, targetSize int, alphaQuality int, autoFilter int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 || quality < 0.0 {
+		err = errors.New("webpEncodeRGB: bad arguments")
+		return
+	}
+	if targetSize < 0 || alphaQuality < 0 || alphaQuality > 100 {
 		err = errors.New("webpEncodeRGB: bad arguments")
 		return
 	}
@@ -186,6 +195,7 @@ func webpEncodeRGB(pix []byte, width, height, stride int, quality float32, metho
 	var cptr = C.webpEncodeRGB(
 		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
 		C.int(stride), C.float(quality), C.int(method),
+		C.int(targetSize), C.int(alphaQuality), C.int(autoFilter),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
@@ -199,8 +209,12 @@ func webpEncodeRGB(pix []byte, width, height, stride int, quality float32, metho
 	return
 }
 
-func webpEncodeRGBA(pix []byte, width, height, stride int, quality float32, method int) (output []byte, err error) {
+func webpEncodeRGBA(pix []byte, width, height, stride int, quality float32, method int, targetSize int, alphaQuality int, autoFilter int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 || quality < 0.0 {
+		err = errors.New("webpEncodeRGBA: bad arguments")
+		return
+	}
+	if targetSize < 0 || alphaQuality < 0 || alphaQuality > 100 {
 		err = errors.New("webpEncodeRGBA: bad arguments")
 		return
 	}
@@ -213,6 +227,7 @@ func webpEncodeRGBA(pix []byte, width, height, stride int, quality float32, meth
 	var cptr = C.webpEncodeRGBA(
 		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
 		C.int(stride), C.float(quality), C.int(method),
+		C.int(targetSize), C.int(alphaQuality), C.int(autoFilter),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
@@ -226,8 +241,12 @@ func webpEncodeRGBA(pix []byte, width, height, stride int, quality float32, meth
 	return
 }
 
-func webpEncodeLosslessGray(pix []byte, width, height, stride int, method int) (output []byte, err error) {
+func webpEncodeLosslessGray(pix []byte, width, height, stride int, method int, targetSize int, alphaQuality int, autoFilter int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 {
+		err = errors.New("webpEncodeLosslessGray: bad arguments")
+		return
+	}
+	if targetSize < 0 || alphaQuality < 0 || alphaQuality > 100 {
 		err = errors.New("webpEncodeLosslessGray: bad arguments")
 		return
 	}
@@ -240,6 +259,7 @@ func webpEncodeLosslessGray(pix []byte, width, height, stride int, method int) (
 	var cptr = C.webpEncodeLosslessGray(
 		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
 		C.int(stride), C.int(method),
+		C.int(targetSize), C.int(alphaQuality), C.int(autoFilter),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
@@ -253,8 +273,12 @@ func webpEncodeLosslessGray(pix []byte, width, height, stride int, method int) (
 	return
 }
 
-func webpEncodeLosslessRGB(pix []byte, width, height, stride int, method int) (output []byte, err error) {
+func webpEncodeLosslessRGB(pix []byte, width, height, stride int, method int, targetSize int, alphaQuality int, autoFilter int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 {
+		err = errors.New("webpEncodeLosslessRGB: bad arguments")
+		return
+	}
+	if targetSize < 0 || alphaQuality < 0 || alphaQuality > 100 {
 		err = errors.New("webpEncodeLosslessRGB: bad arguments")
 		return
 	}
@@ -267,6 +291,7 @@ func webpEncodeLosslessRGB(pix []byte, width, height, stride int, method int) (o
 	var cptr = C.webpEncodeLosslessRGB(
 		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
 		C.int(stride), C.int(method),
+		C.int(targetSize), C.int(alphaQuality), C.int(autoFilter),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {
@@ -280,8 +305,12 @@ func webpEncodeLosslessRGB(pix []byte, width, height, stride int, method int) (o
 	return
 }
 
-func webpEncodeLosslessRGBA(exact int, pix []byte, width, height, stride int, method int) (output []byte, err error) {
+func webpEncodeLosslessRGBA(exact int, pix []byte, width, height, stride int, method int, targetSize int, alphaQuality int, autoFilter int) (output []byte, err error) {
 	if len(pix) == 0 || width <= 0 || height <= 0 || stride <= 0 {
+		err = errors.New("webpEncodeLosslessRGBA: bad arguments")
+		return
+	}
+	if targetSize < 0 || alphaQuality < 0 || alphaQuality > 100 {
 		err = errors.New("webpEncodeLosslessRGBA: bad arguments")
 		return
 	}
@@ -294,6 +323,7 @@ func webpEncodeLosslessRGBA(exact int, pix []byte, width, height, stride int, me
 	var cptr = C.webpEncodeLosslessRGBA(
 		C.int(exact), (*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(width), C.int(height),
 		C.int(stride), C.int(method),
+		C.int(targetSize), C.int(alphaQuality), C.int(autoFilter),
 		&cptr_size,
 	)
 	if cptr == nil || cptr_size == 0 {

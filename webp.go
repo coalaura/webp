@@ -106,50 +106,85 @@ func DecodeRGBAToSize(data []byte, width, height int) (m *image.RGBA, err error)
 }
 
 func EncodeGray(m image.Image, quality float32, method int) (data []byte, err error) {
+	return encodeGray(m, quality, method, 0, DefaultAlphaQuality, false)
+}
+
+func EncodeRGB(m image.Image, quality float32, method int) (data []byte, err error) {
+	return encodeRGB(m, quality, method, 0, DefaultAlphaQuality, false)
+}
+
+func EncodeRGBA(m image.Image, quality float32, method int) (data []byte, err error) {
+	return encodeRGBA(m, quality, method, 0, DefaultAlphaQuality, false)
+}
+
+func EncodeLosslessGray(m image.Image, method int) (data []byte, err error) {
+	return encodeLosslessGray(m, method, 0, DefaultAlphaQuality, false)
+}
+
+func EncodeLosslessRGB(m image.Image, method int) (data []byte, err error) {
+	return encodeLosslessRGB(m, method, 0, DefaultAlphaQuality, false)
+}
+
+func EncodeLosslessRGBA(m image.Image, method int) (data []byte, err error) {
+	return encodeLosslessRGBA(m, method, 0, DefaultAlphaQuality, false)
+}
+
+// EncodeExactLosslessRGBA Encode lossless RGB mode with exact.
+// exact: preserve RGB values in transparent area.
+func EncodeExactLosslessRGBA(m image.Image, method int) (data []byte, err error) {
+	return encodeExactLosslessRGBA(m, method, 0, DefaultAlphaQuality, false)
+}
+
+func encodeGray(m image.Image, quality float32, method int, targetSize int, alphaQuality int, autoFilter bool) (data []byte, err error) {
 	p := toGrayImage(m)
-	data, err = webpEncodeGray(p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, quality, method)
+	data, err = webpEncodeGray(p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, quality, method, targetSize, alphaQuality, boolToInt(autoFilter))
 	if err != nil {
 		return
 	}
 	return
 }
 
-func EncodeRGB(m image.Image, quality float32, method int) (data []byte, err error) {
+func encodeRGB(m image.Image, quality float32, method int, targetSize int, alphaQuality int, autoFilter bool) (data []byte, err error) {
 	p := NewRGBImageFrom(m)
-	data, err = webpEncodeRGB(p.XPix, p.XRect.Dx(), p.XRect.Dy(), p.XStride, quality, method)
+	data, err = webpEncodeRGB(p.XPix, p.XRect.Dx(), p.XRect.Dy(), p.XStride, quality, method, targetSize, alphaQuality, boolToInt(autoFilter))
 	return
 }
 
-func EncodeRGBA(m image.Image, quality float32, method int) (data []byte, err error) {
+func encodeRGBA(m image.Image, quality float32, method int, targetSize int, alphaQuality int, autoFilter bool) (data []byte, err error) {
 	p := toRGBAImage(m)
-	data, err = webpEncodeRGBA(p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, quality, method)
+	data, err = webpEncodeRGBA(p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, quality, method, targetSize, alphaQuality, boolToInt(autoFilter))
 	return
 }
 
-func EncodeLosslessGray(m image.Image, method int) (data []byte, err error) {
+func encodeLosslessGray(m image.Image, method int, targetSize int, alphaQuality int, autoFilter bool) (data []byte, err error) {
 	p := toGrayImage(m)
-	data, err = webpEncodeLosslessGray(p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, method)
+	data, err = webpEncodeLosslessGray(p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, method, targetSize, alphaQuality, boolToInt(autoFilter))
 	return
 }
 
-func EncodeLosslessRGB(m image.Image, method int) (data []byte, err error) {
+func encodeLosslessRGB(m image.Image, method int, targetSize int, alphaQuality int, autoFilter bool) (data []byte, err error) {
 	p := NewRGBImageFrom(m)
-	data, err = webpEncodeLosslessRGB(p.XPix, p.XRect.Dx(), p.XRect.Dy(), p.XStride, method)
+	data, err = webpEncodeLosslessRGB(p.XPix, p.XRect.Dx(), p.XRect.Dy(), p.XStride, method, targetSize, alphaQuality, boolToInt(autoFilter))
 	return
 }
 
-func EncodeLosslessRGBA(m image.Image, method int) (data []byte, err error) {
+func encodeLosslessRGBA(m image.Image, method int, targetSize int, alphaQuality int, autoFilter bool) (data []byte, err error) {
 	p := toRGBAImage(m)
-	data, err = webpEncodeLosslessRGBA(0, p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, method)
+	data, err = webpEncodeLosslessRGBA(0, p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, method, targetSize, alphaQuality, boolToInt(autoFilter))
 	return
 }
 
-// EncodeExactLosslessRGBA Encode lossless RGB mode with exact.
-// exact: preserve RGB values in transparent area.
-func EncodeExactLosslessRGBA(m image.Image, method int) (data []byte, err error) {
+func encodeExactLosslessRGBA(m image.Image, method int, targetSize int, alphaQuality int, autoFilter bool) (data []byte, err error) {
 	p := toRGBAImage(m)
-	data, err = webpEncodeLosslessRGBA(1, p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, method)
+	data, err = webpEncodeLosslessRGBA(1, p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, method, targetSize, alphaQuality, boolToInt(autoFilter))
 	return
+}
+
+func boolToInt(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
 }
 
 // GetMetadata return EXIF/ICCP/XMP format metadata.
