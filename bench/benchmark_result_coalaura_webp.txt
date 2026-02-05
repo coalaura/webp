@@ -1,0 +1,33 @@
+# Copyright 2015 ChaiShushan <chaishushan{AT}gmail.com>. All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+# go test -bench=coalaura_webp$
+
+# name, run times, speed, ns/op
+1_webp_a                                           1208            955015 ns/op
+1_webp_ll                                          1059           1201146 ns/op
+2_webp_a                                           1040           1139165 ns/op
+2_webp_ll                                          1602            688030 ns/op
+3_webp_a                                            304           4199231 ns/op
+3_webp_ll                                           320           3676605 ns/op
+4_webp_a                                           1483            838354 ns/op
+4_webp_ll                                          1677            724296 ns/op
+5_webp_a                                            604           1975897 ns/op
+5_webp_ll                                          1189           1090060 ns/op
+blue_purple_pink_large_lossless                     420           2857743 ns/op
+blue_purple_pink_large_no_filter_lossy             1052           1185849 ns/op
+blue_purple_pink_large_normal_filter_lossy          908           1355084 ns/op
+blue_purple_pink_large_simple_filter_lossy         1000           1198774 ns/op
+blue_purple_pink_lossless                          5491            246729 ns/op
+blue_purple_pink_lossy                            13114             91231 ns/op
+gopher_doc_1bpp_lossless                          51676             20439 ns/op
+gopher_doc_2bpp_lossless                          59716             19413 ns/op
+gopher_doc_4bpp_lossless                          47251             24115 ns/op
+gopher_doc_8bpp_lossless                          37681             37165 ns/op
+tux_lossless                                       1646            947173 ns/op
+video_001_lossy                                   10000            112114 ns/op
+video_001                                         10000            126604 ns/op
+yellow_rose_lossless                                900           1465369 ns/op
+yellow_rose_lossy_with_alpha                       1580            844857 ns/op
+yellow_rose_lossy                                  1683            874728 ns/op

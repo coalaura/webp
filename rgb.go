@@ -87,7 +87,6 @@ func (p *RGBImage) Set(x, y int, c color.Color) {
 	p.XPix[i+0] = c1.R
 	p.XPix[i+1] = c1.G
 	p.XPix[i+2] = c1.B
-	return
 }
 
 func (p *RGBImage) SetRGB(x, y int, c [3]uint8) {
@@ -98,7 +97,6 @@ func (p *RGBImage) SetRGB(x, y int, c [3]uint8) {
 	p.XPix[i+0] = c[0]
 	p.XPix[i+1] = c[1]
 	p.XPix[i+2] = c[2]
-	return
 }
 
 // SubImage returns an image representing the portion of the image p visible

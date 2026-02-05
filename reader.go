@@ -51,7 +51,7 @@ func Load(name string) (m image.Image, err error) {
 		return nil, err
 	}
 	if fi.Size() > (2 << 30) {
-		return nil, errors.New("webp: Load, file size is too large (> 2GB)!")
+		return nil, errors.New("webp: Load, file size is too large (> 2GB)")
 	}
 
 	data := make([]byte, int(fi.Size()))
@@ -85,7 +85,7 @@ func DecodeConfig(r io.Reader) (config image.Config, err error) {
 
 // Decode reads a WEBP image from r and returns it as an image.Image.
 func Decode(r io.Reader) (m image.Image, err error) {
-	data, err := os.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return
 	}
