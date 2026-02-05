@@ -13,7 +13,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/chai2010/webp"
+	"github.com/coalaura/webp"
 )
 
 func main() {
