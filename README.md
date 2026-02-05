@@ -35,7 +35,7 @@ Benchmark
 Install
 =======
 
-Install `GCC` or `MinGW` ([download here](http://tdm-gcc.tdragon.net/download)) at first,
+Install Zig first (recommended, cross-platform, `export CC="zig cc" && export CXX="zig c++"`),
 and then run these commands:
 
 1. `go get github.com/coalaura/webp`
