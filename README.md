@@ -16,6 +16,16 @@ webp
 [![GitHub release](https://img.shields.io/github/v/tag/coalaura/webp.svg?label=release)](https://github.com/coalaura/webp/releases)
 [![license](https://img.shields.io/github/license/coalaura/webp.svg)](https://github.com/coalaura/webp/blob/master/LICENSE)
 
+Why this fork
+=============
+
+This fork adds a few practical improvements over the original repository:
+
+- libwebp 1.6.0 instead of 1.4.0
+- Animated WebP support (DecodeAll/EncodeAll)
+- Full WebP config parsing (has_alpha, has_animation and format via DecodeConfigEx)
+- More exposed WebP encoding options (method, auto_filter, etc.)
+
 Benchmark
 =========
 
