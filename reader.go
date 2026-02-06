@@ -26,7 +26,7 @@ type Config struct {
 }
 
 type DecodeOptions struct {
-	UseThreads bool
+	UseThreads bool // Enable libwebp multi-threading (default true)
 }
 
 func LoadConfigEx(name string) (config Config, err error) {

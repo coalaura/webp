@@ -44,7 +44,7 @@ func DecodeRGB(data []byte) (m *RGBImage, err error) {
 }
 
 func DecodeRGBWithOptions(data []byte, opt *DecodeOptions) (m *RGBImage, err error) {
-	useThreads := false
+	useThreads := true
 	if opt != nil {
 		useThreads = opt.UseThreads
 	}
@@ -66,7 +66,7 @@ func DecodeRGBA(data []byte) (m *image.RGBA, err error) {
 }
 
 func DecodeRGBAWithOptions(data []byte, opt *DecodeOptions) (m *image.RGBA, err error) {
-	useThreads := false
+	useThreads := true
 	if opt != nil {
 		useThreads = opt.UseThreads
 	}

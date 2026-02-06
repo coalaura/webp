@@ -20,22 +20,20 @@ set xlabel ""
 set ylabel "ns/op"
 set xtics rotate by -90
 
-set key outside right top
-set key box opaque
+set key right top
 set key spacing 1.2
 set grid ytics
 
 #set yrange [0:50]
 plot \
 	"benchmark_result_coalaura_webp.txt" using 3:xticlabels(1) title "coalaura/webp" with linespoints, \
-	"benchmark_result_coalaura_webp_threaded.txt" using 3:xticlabels(1) title "coalaura/webp (threads)" with linespoints, \
 	"benchmark_result_chai2010_webp.txt" using 3:xticlabels(1) title "chai2010/webp" with linespoints, \
 	"benchmark_result_x_image_webp.txt" using 3:xticlabels(1) title "x/image/webp" with linespoints
 
 set output "benchmark_encode.png"
 set title "WebP Encode Benchmark (Low is Better)"
+set key left top
 
 plot \
 	"benchmark_result_encode_coalaura_webp.txt" using 3:xticlabels(1) title "coalaura/webp" with linespoints, \
-	"benchmark_result_encode_coalaura_webp_threaded.txt" using 3:xticlabels(1) title "coalaura/webp (threads)" with linespoints, \
 	"benchmark_result_encode_chai2010_webp.txt" using 3:xticlabels(1) title "chai2010/webp" with linespoints

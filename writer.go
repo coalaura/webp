@@ -28,7 +28,7 @@ type Options struct {
 	AutoFilter   bool    // Auto-adjust filter for each image
 	Exact        bool    // Preserve RGB values in transparent area.
 	Method       int     // Quality/speed trade-off (0=fast, 6=slower-better)
-	UseThreads   bool    // Enable libwebp multi-threading
+	UseThreads   bool    // Enable libwebp multi-threading (default true)
 }
 
 type colorModeler interface {
@@ -56,7 +56,7 @@ func encode(w io.Writer, m image.Image, opt *Options) (err error) {
 	targetSize := 0
 	alphaQuality := DefaultAlphaQuality
 	autoFilter := false
-	useThreads := false
+	useThreads := true
 	if opt != nil {
 		method = opt.Method
 		targetSize = opt.TargetSize
