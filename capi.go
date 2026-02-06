@@ -19,7 +19,6 @@ package webp
 #cgo CFLAGS: -I./internal/libwebp-1.6.0/src/
 #cgo CFLAGS: -I./internal/include/
 #cgo CFLAGS: -Wno-pointer-sign -DWEBP_USE_THREAD -O3 -ffast-math
-#cgo !windows CFLAGS: -march=native
 #cgo !windows LDFLAGS: -lm
 
 #include "webp.h"
