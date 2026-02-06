@@ -28,6 +28,7 @@ type Options struct {
 	AutoFilter   bool    // Auto-adjust filter for each image
 	Exact        bool    // Preserve RGB values in transparent area.
 	Method       int     // Quality/speed trade-off (0=fast, 6=slower-better)
+	UseThreads   bool    // Enable libwebp multi-threading
 }
 
 type colorModeler interface {
@@ -55,6 +56,7 @@ func encode(w io.Writer, m image.Image, opt *Options) (err error) {
 	targetSize := 0
 	alphaQuality := DefaultAlphaQuality
 	autoFilter := false
+	useThreads := false
 	if opt != nil {
 		method = opt.Method
 		targetSize = opt.TargetSize
@@ -63,22 +65,23 @@ func encode(w io.Writer, m image.Image, opt *Options) (err error) {
 			alphaQuality = DefaultAlphaQuality
 		}
 		autoFilter = opt.AutoFilter
+		useThreads = opt.UseThreads
 	}
 	if opt != nil && opt.Lossless {
 		switch m := adjustImage(m).(type) {
 		case *image.Gray:
-			if output, err = encodeLosslessGray(m, method, targetSize, alphaQuality, autoFilter); err != nil {
+			if output, err = encodeLosslessGray(m, method, targetSize, alphaQuality, autoFilter, useThreads); err != nil {
 				return
 			}
 		case *RGBImage:
-			if output, err = encodeLosslessRGB(m, method, targetSize, alphaQuality, autoFilter); err != nil {
+			if output, err = encodeLosslessRGB(m, method, targetSize, alphaQuality, autoFilter, useThreads); err != nil {
 				return
 			}
 		case *image.RGBA:
 			if opt.Exact {
-				output, err = encodeExactLosslessRGBA(m, method, targetSize, alphaQuality, autoFilter)
+				output, err = encodeExactLosslessRGBA(m, method, targetSize, alphaQuality, autoFilter, useThreads)
 			} else {
-				output, err = encodeLosslessRGBA(m, method, targetSize, alphaQuality, autoFilter)
+				output, err = encodeLosslessRGBA(m, method, targetSize, alphaQuality, autoFilter, useThreads)
 			}
 			if err != nil {
 				return
@@ -96,15 +99,15 @@ func encode(w io.Writer, m image.Image, opt *Options) (err error) {
 
 		switch m := adjustImage(m).(type) {
 		case *image.Gray:
-			if output, err = encodeGray(m, quality, method, targetSize, alphaQuality, autoFilter); err != nil {
+			if output, err = encodeGray(m, quality, method, targetSize, alphaQuality, autoFilter, useThreads); err != nil {
 				return
 			}
 		case *RGBImage:
-			if output, err = encodeRGB(m, quality, method, targetSize, alphaQuality, autoFilter); err != nil {
+			if output, err = encodeRGB(m, quality, method, targetSize, alphaQuality, autoFilter, useThreads); err != nil {
 				return
 			}
 		case *image.RGBA:
-			if output, err = encodeRGBA(m, quality, method, targetSize, alphaQuality, autoFilter); err != nil {
+			if output, err = encodeRGBA(m, quality, method, targetSize, alphaQuality, autoFilter, useThreads); err != nil {
 				return
 			}
 		default:

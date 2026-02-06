@@ -71,39 +71,42 @@ func C_webpDecodeRGBA(
 func C_webpDecodeGrayToSize(
 	data *C_uint8_t, data_size C_size_t,
 	width C_int, height C_int, outStride C_int,
-	out *C_uint8_t,
+	out *C_uint8_t, use_threads C_int,
 ) C_int {
 	return (C_int)(C.webpDecodeGrayToSize(
 		(*C.uint8_t)(data), (C.size_t)(data_size),
 		(C.int)(width), (C.int)(height),
 		(C.int)(outStride),
 		(*C.uint8_t)(out),
+		(C.int)(use_threads),
 	))
 }
 
 func C_webpDecodeRGBToSize(
 	data *C_uint8_t, data_size C_size_t,
 	width C_int, height C_int, outStride C_int,
-	out *C_uint8_t,
+	out *C_uint8_t, use_threads C_int,
 ) C_int {
 	return (C_int)(C.webpDecodeRGBToSize(
 		(*C.uint8_t)(data), (C.size_t)(data_size),
 		(C.int)(width), (C.int)(height),
 		(C.int)(outStride),
 		(*C.uint8_t)(out),
+		(C.int)(use_threads),
 	))
 }
 
 func C_webpDecodeRGBAToSize(
 	data *C_uint8_t, data_size C_size_t,
 	width C_int, height C_int, outStride C_int,
-	out *C_uint8_t,
+	out *C_uint8_t, use_threads C_int,
 ) C_int {
 	return (C_int)(C.webpDecodeRGBAToSize(
 		(*C.uint8_t)(data), (C.size_t)(data_size),
 		(C.int)(width), (C.int)(height),
 		(C.int)(outStride),
 		(*C.uint8_t)(out),
+		(C.int)(use_threads),
 	))
 }
 
@@ -115,6 +118,7 @@ func C_webpEncodeGray(
 	target_size C_int,
 	alpha_quality C_int,
 	auto_filter C_int,
+	thread_level C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeGray(
@@ -125,6 +129,7 @@ func C_webpEncodeGray(
 		(C.int)(target_size),
 		(C.int)(alpha_quality),
 		(C.int)(auto_filter),
+		(C.int)(thread_level),
 		(*C.size_t)(output_size),
 	))
 }
@@ -137,6 +142,7 @@ func C_webpEncodeRGB(
 	target_size C_int,
 	alpha_quality C_int,
 	auto_filter C_int,
+	thread_level C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeRGB(
@@ -147,6 +153,7 @@ func C_webpEncodeRGB(
 		(C.int)(target_size),
 		(C.int)(alpha_quality),
 		(C.int)(auto_filter),
+		(C.int)(thread_level),
 		(*C.size_t)(output_size),
 	))
 }
@@ -159,6 +166,7 @@ func C_webpEncodeRGBA(
 	target_size C_int,
 	alpha_quality C_int,
 	auto_filter C_int,
+	thread_level C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeRGBA(
@@ -169,6 +177,7 @@ func C_webpEncodeRGBA(
 		(C.int)(target_size),
 		(C.int)(alpha_quality),
 		(C.int)(auto_filter),
+		(C.int)(thread_level),
 		(*C.size_t)(output_size),
 	))
 }
@@ -180,6 +189,7 @@ func C_webpEncodeLosslessGray(
 	target_size C_int,
 	alpha_quality C_int,
 	auto_filter C_int,
+	thread_level C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeLosslessGray(
@@ -189,6 +199,7 @@ func C_webpEncodeLosslessGray(
 		(C.int)(target_size),
 		(C.int)(alpha_quality),
 		(C.int)(auto_filter),
+		(C.int)(thread_level),
 		(*C.size_t)(output_size),
 	))
 }
@@ -200,6 +211,7 @@ func C_webpEncodeLosslessRGB(
 	target_size C_int,
 	alpha_quality C_int,
 	auto_filter C_int,
+	thread_level C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeLosslessRGB(
@@ -209,6 +221,7 @@ func C_webpEncodeLosslessRGB(
 		(C.int)(target_size),
 		(C.int)(alpha_quality),
 		(C.int)(auto_filter),
+		(C.int)(thread_level),
 		(*C.size_t)(output_size),
 	))
 }
@@ -221,6 +234,7 @@ func C_webpEncodeLosslessRGBA(
 	target_size C_int,
 	alpha_quality C_int,
 	auto_filter C_int,
+	thread_level C_int,
 	output_size *C_size_t,
 ) *C_uint8_t {
 	return (*C_uint8_t)(C.webpEncodeLosslessRGBA(
@@ -231,6 +245,7 @@ func C_webpEncodeLosslessRGBA(
 		(C.int)(target_size),
 		(C.int)(alpha_quality),
 		(C.int)(auto_filter),
+		(C.int)(thread_level),
 		(*C.size_t)(output_size),
 	))
 }

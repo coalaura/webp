@@ -133,11 +133,11 @@ func BenchmarkDecode_{{.goodBaseName}}_x_image_webp(b *testing.B) {
 	}
 }
 
-func BenchmarkDecode_{{.goodBaseName}}_coalaura_webp_tosize(b *testing.B) {
+func BenchmarkDecode_{{.goodBaseName}}_coalaura_webp_threaded(b *testing.B) {
 	data := tbLoadData(b, "{{.filename}}")
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err := coalaura_webp.DecodeRGBAToSize(data, 256, 256)
+		m, err := coalaura_webp.DecodeWithOptions(bytes.NewReader(data), &coalaura_webp.DecodeOptions{UseThreads: true})
 		if err != nil {
 			b.Fatal(err)
 		}

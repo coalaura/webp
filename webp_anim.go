@@ -5,14 +5,15 @@ package webp
 #cgo CFLAGS: -I./internal/libwebp-1.6.0/src/
 #cgo CFLAGS: -I./internal/include/
 #cgo CFLAGS: -Wno-pointer-sign -DWEBP_USE_THREAD -O3 -ffast-math
-#cgo !windows CFLAGS: -march=native -flto
-#cgo !windows LDFLAGS: -lm -flto
+#cgo !windows CFLAGS: -march=native
+#cgo !windows LDFLAGS: -lm
 
 #include "webp.h"
 #include <webp/demux.h>
 #include <webp/mux.h>
 #include <webp/encode.h>
 #include <stdlib.h>
+#include <string.h>
 */
 import "C"
 
@@ -21,8 +22,45 @@ import (
 	"image"
 	"image/color"
 	"io"
+	"runtime"
+	"sync"
 	"unsafe"
 )
+
+type cBuffer struct {
+	ptr unsafe.Pointer
+	cap int
+}
+
+var cBufferPool = sync.Pool{
+	New: func() interface{} {
+		return &cBuffer{}
+	},
+}
+
+func borrowCBuffer(size int) (*cBuffer, unsafe.Pointer, error) {
+	buf := cBufferPool.Get().(*cBuffer)
+	if buf.cap < size {
+		if buf.ptr != nil {
+			C.free(buf.ptr)
+		}
+		buf.ptr = C.malloc(C.size_t(size))
+		if buf.ptr == nil {
+			buf.cap = 0
+			cBufferPool.Put(buf)
+			return nil, nil, errors.New("webp: alloc failed")
+		}
+		buf.cap = size
+	}
+	return buf, buf.ptr, nil
+}
+
+func releaseCBuffer(buf *cBuffer) {
+	if buf == nil {
+		return
+	}
+	cBufferPool.Put(buf)
+}
 
 // Animation represents an animated WebP image.
 // Delay values are in milliseconds.
@@ -36,6 +74,15 @@ type Animation struct {
 // DecodeAll reads a WEBP image from r and returns all frames.
 // Delay values are in milliseconds.
 func DecodeAll(r io.Reader) (*Animation, error) {
+	return DecodeAllWithOptions(r, nil)
+}
+
+func DecodeAllWithOptions(r io.Reader, opt *DecodeOptions) (*Animation, error) {
+	useThreads := false
+	if opt != nil {
+		useThreads = opt.UseThreads
+	}
+
 	data, release, err := readAllPooled(r)
 	if err != nil {
 		return nil, err
@@ -43,10 +90,10 @@ func DecodeAll(r io.Reader) (*Animation, error) {
 	if release != nil {
 		defer release()
 	}
-	return decodeAll(data)
+	return decodeAll(data, useThreads)
 }
 
-func decodeAll(data []byte) (*Animation, error) {
+func decodeAll(data []byte, useThreads bool) (*Animation, error) {
 	if len(data) == 0 {
 		return nil, errors.New("webp: DecodeAll, empty data")
 	}
@@ -56,14 +103,16 @@ func decodeAll(data []byte) (*Animation, error) {
 		return nil, errors.New("webp: DecodeAll, init decoder options failed")
 	}
 	decOptions.color_mode = C.MODE_RGBA
-	decOptions.use_threads = 1
+	decOptions.use_threads = C.int(boolToInt(useThreads))
 
-	cdata := C.CBytes(data)
-	if cdata == nil {
-		return nil, errors.New("webp: DecodeAll, alloc failed")
+	buf, cptr, err := borrowCBuffer(len(data))
+	if err != nil {
+		return nil, err
 	}
-	defer C.free(cdata)
-	webpData := C.WebPData{bytes: (*C.uint8_t)(cdata), size: C.size_t(len(data))}
+	defer releaseCBuffer(buf)
+	C.memcpy(cptr, unsafe.Pointer(&data[0]), C.size_t(len(data)))
+	runtime.KeepAlive(data)
+	webpData := C.WebPData{bytes: (*C.uint8_t)(cptr), size: C.size_t(len(data))}
 	dec := C.WebPAnimDecoderNew(&webpData, &decOptions)
 	if dec == nil {
 		return nil, errors.New("webp: DecodeAll, create decoder failed")
@@ -186,6 +235,7 @@ func EncodeAll(w io.Writer, anim *Animation, opt *Options) error {
 	autoFilter := false
 	exact := false
 	lossless := false
+	useThreads := false
 	quality := float32(DefaultQuality)
 	if opt != nil {
 		method = opt.Method
@@ -197,6 +247,7 @@ func EncodeAll(w io.Writer, anim *Animation, opt *Options) error {
 		autoFilter = opt.AutoFilter
 		exact = opt.Exact
 		lossless = opt.Lossless
+		useThreads = opt.UseThreads
 		if targetSize == 0 {
 			quality = opt.Quality
 		}
@@ -223,7 +274,11 @@ func EncodeAll(w io.Writer, anim *Animation, opt *Options) error {
 	if exact {
 		config.exact = 1
 	}
-	config.thread_level = 1
+	if useThreads {
+		config.thread_level = 1
+	} else {
+		config.thread_level = 0
+	}
 	if C.WebPValidateConfig(&config) == 0 {
 		return errors.New("webp: EncodeAll, invalid config")
 	}

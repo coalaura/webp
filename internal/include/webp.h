@@ -42,39 +42,39 @@ int webpDecodeRGBAInto(
 );
 
 int webpDecodeGrayToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out
+	int width, int height, int outStride, uint8_t* out, int use_threads
 );
 int webpDecodeRGBToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out
+	int width, int height, int outStride, uint8_t* out, int use_threads
 );
 int webpDecodeRGBAToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out
+	int width, int height, int outStride, uint8_t* out, int use_threads
 );
 
 uint8_t* webpEncodeGray(
 	const uint8_t* gray, int width, int height, int stride, float quality_factor,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 );
 uint8_t* webpEncodeRGB(
 	const uint8_t* rgb, int width, int height, int stride, float quality_factor,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 );
 uint8_t* webpEncodeRGBA(
 	const uint8_t* rgba, int width, int height, int stride, float quality_factor,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 );
 
 uint8_t* webpEncodeLosslessGray(
 	const uint8_t* gray, int width, int height, int stride,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 );
 uint8_t* webpEncodeLosslessRGB(
 	const uint8_t* rgb, int width, int height, int stride,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 );
 uint8_t* webpEncodeLosslessRGBA(
 	int exact, const uint8_t* rgba, int width, int height, int stride,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 );
 
 char* webpGetEXIF(const uint8_t* data, size_t data_size, size_t* metadata_size);

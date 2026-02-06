@@ -25,6 +25,10 @@ type Config struct {
 	Format       int  // 0 = undefined (/mixed), 1 = lossy, 2 = lossless
 }
 
+type DecodeOptions struct {
+	UseThreads bool
+}
+
 func LoadConfigEx(name string) (config Config, err error) {
 	f, err := os.Open(name)
 	if err != nil {
@@ -144,6 +148,10 @@ func DecodeConfig(r io.Reader) (config image.Config, err error) {
 
 // Decode reads a WEBP image from r and returns it as an image.Image.
 func Decode(r io.Reader) (m image.Image, err error) {
+	return DecodeWithOptions(r, nil)
+}
+
+func DecodeWithOptions(r io.Reader, opt *DecodeOptions) (m image.Image, err error) {
 	data, release, err := readAllPooled(r)
 	if err != nil {
 		return
@@ -151,7 +159,7 @@ func Decode(r io.Reader) (m image.Image, err error) {
 	if release != nil {
 		defer release()
 	}
-	if m, err = DecodeRGBA(data); err != nil {
+	if m, err = DecodeRGBAWithOptions(data, opt); err != nil {
 		return
 	}
 	return

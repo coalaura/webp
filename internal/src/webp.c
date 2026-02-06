@@ -125,7 +125,7 @@ int webpDecodeRGBAInto(const uint8_t* data, size_t data_size,
 }
 
 int webpDecodeGrayToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out
+	int width, int height, int outStride, uint8_t* out, int use_threads
 ) {
 	WebPDecoderConfig config;
 	if(!WebPInitDecoderConfig(&config)) {
@@ -134,7 +134,7 @@ int webpDecodeGrayToSize(const uint8_t* data, size_t data_size,
 
 	config.options.bypass_filtering = 1;
 	config.options.no_fancy_upsampling = 1;
-	config.options.use_threads = 1;
+	config.options.use_threads = use_threads;
 	config.options.use_scaling = 1;
 	config.options.scaled_width = width;
 	config.options.scaled_height = height;
@@ -161,7 +161,7 @@ int webpDecodeGrayToSize(const uint8_t* data, size_t data_size,
 }
 
 int webpDecodeRGBToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out
+	int width, int height, int outStride, uint8_t* out, int use_threads
 ) {
 	WebPDecoderConfig config;
 	if(!WebPInitDecoderConfig(&config)) {
@@ -170,7 +170,7 @@ int webpDecodeRGBToSize(const uint8_t* data, size_t data_size,
 
 	config.options.bypass_filtering = 1;
 	config.options.no_fancy_upsampling = 1;
-	config.options.use_threads = 1;
+	config.options.use_threads = use_threads;
 	config.options.use_scaling = 1;
 	config.options.scaled_width = width;
 	config.options.scaled_height = height;
@@ -184,7 +184,7 @@ int webpDecodeRGBToSize(const uint8_t* data, size_t data_size,
 }
 
 int webpDecodeRGBAToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out
+	int width, int height, int outStride, uint8_t* out, int use_threads
 ) {
 	WebPDecoderConfig config;
 	if(!WebPInitDecoderConfig(&config)) {
@@ -193,7 +193,7 @@ int webpDecodeRGBAToSize(const uint8_t* data, size_t data_size,
 
 	config.options.bypass_filtering = 1;
 	config.options.no_fancy_upsampling = 1;
-	config.options.use_threads = 1;
+	config.options.use_threads = use_threads;
 	config.options.use_scaling = 1;
 	config.options.scaled_width = width;
 	config.options.scaled_height = height;
@@ -208,11 +208,9 @@ int webpDecodeRGBAToSize(const uint8_t* data, size_t data_size,
 
 uint8_t* webpEncodeGray(
 	const uint8_t* gray, int width, int height, int stride, float quality_factor,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 ) {
 	uint8_t* output;
-	uint8_t* rgb;
-	int x, y;
 	WebPConfig config;
 	WebPPicture pic;
 	WebPMemoryWriter wrt;
@@ -225,24 +223,9 @@ uint8_t* webpEncodeGray(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
-	config.thread_level = 1;
-
-	if((rgb = (uint8_t*)malloc(width*height*3)) == NULL) {
-		return NULL;
-	}
-	for(y = 0; y < height; ++y) {
-		const uint8_t* src = gray + y*stride;
-		uint8_t* dst = rgb + y*width*3;
-		for(x = 0; x < width; ++x) {
-			uint8_t v = *src++;
-			*dst++ = v;
-			*dst++ = v;
-			*dst++ = v;
-		}
-	}
+	config.thread_level = thread_level;
 
 	if(!WebPPictureInit(&pic)) {
-		free(rgb);
 		return NULL;
 	}
 	pic.width = width;
@@ -250,10 +233,37 @@ uint8_t* webpEncodeGray(
 	pic.writer = WebPMemoryWrite;
 	pic.custom_ptr = &wrt;
 	WebPMemoryWriterInit(&wrt);
+	if(!WebPPictureAlloc(&pic)) {
+		WebPPictureFree(&pic);
+		return NULL;
+	}
 
-	ok = WebPPictureImportRGB(&pic, rgb, width*3) && WebPEncode(&config, &pic);
+	{
+		uint8_t* dst = pic.y;
+		int y;
+		for(y = 0; y < height; ++y) {
+			const uint8_t* src = gray + y*stride;
+			memcpy(dst, src, width);
+			dst += pic.y_stride;
+		}
+
+		if(pic.u != NULL && pic.v != NULL) {
+			const int uv_width = (width + 1) >> 1;
+			const int uv_height = (height + 1) >> 1;
+			uint8_t* u = pic.u;
+			uint8_t* v = pic.v;
+			int i;
+			for(i = 0; i < uv_height; ++i) {
+				memset(u, 128, uv_width);
+				memset(v, 128, uv_width);
+				u += pic.uv_stride;
+				v += pic.uv_stride;
+			}
+		}
+	}
+
+	ok = WebPEncode(&config, &pic);
 	WebPPictureFree(&pic);
-	free(rgb);
 
 	if(!ok) {
 		WebPMemoryWriterClear(&wrt);
@@ -265,7 +275,7 @@ uint8_t* webpEncodeGray(
 
 uint8_t* webpEncodeRGB(
 	const uint8_t* rgb, int width, int height, int stride, float quality_factor,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 ) {
 	WebPConfig config;
 	WebPPicture pic;
@@ -279,7 +289,7 @@ uint8_t* webpEncodeRGB(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
-	config.thread_level = 1;
+	config.thread_level = thread_level;
 
 	if(!WebPPictureInit(&pic)) {
 		return NULL;
@@ -303,7 +313,7 @@ uint8_t* webpEncodeRGB(
 
 uint8_t* webpEncodeRGBA(
 	const uint8_t* rgba, int width, int height, int stride, float quality_factor,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 ) {
 	WebPConfig config;
 	WebPPicture pic;
@@ -317,7 +327,7 @@ uint8_t* webpEncodeRGBA(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
-	config.thread_level = 1;
+	config.thread_level = thread_level;
 
 	if(!WebPPictureInit(&pic)) {
 		return NULL;
@@ -342,11 +352,9 @@ uint8_t* webpEncodeRGBA(
 
 uint8_t* webpEncodeLosslessGray(
 	const uint8_t* gray, int width, int height, int stride,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 ) {
 	uint8_t* output;
-	uint8_t* rgb;
-	int x, y;
 	WebPConfig config;
 	WebPPicture pic;
 	WebPMemoryWriter wrt;
@@ -360,24 +368,9 @@ uint8_t* webpEncodeLosslessGray(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
-	config.thread_level = 1;
-
-	if((rgb = (uint8_t*)malloc(width*height*3)) == NULL) {
-		return NULL;
-	}
-	for(y = 0; y < height; ++y) {
-		const uint8_t* src = gray + y*stride;
-		uint8_t* dst = rgb + y*width*3;
-		for(x = 0; x < width; ++x) {
-			uint8_t v = *src++;
-			*dst++ = v;
-			*dst++ = v;
-			*dst++ = v;
-		}
-	}
+	config.thread_level = thread_level;
 
 	if(!WebPPictureInit(&pic)) {
-		free(rgb);
 		return NULL;
 	}
 	pic.use_argb = 1;
@@ -386,10 +379,27 @@ uint8_t* webpEncodeLosslessGray(
 	pic.writer = WebPMemoryWrite;
 	pic.custom_ptr = &wrt;
 	WebPMemoryWriterInit(&wrt);
+	if(!WebPPictureAlloc(&pic)) {
+		WebPPictureFree(&pic);
+		return NULL;
+	}
 
-	ok = WebPPictureImportRGB(&pic, rgb, width*3) && WebPEncode(&config, &pic);
+	{
+		uint32_t* dst = pic.argb;
+		int y;
+		for(y = 0; y < height; ++y) {
+			const uint8_t* src = gray + y*stride;
+			uint32_t* row = dst + y*pic.argb_stride;
+			int x;
+			for(x = 0; x < width; ++x) {
+				const uint32_t v = (uint32_t)(*src++);
+				row[x] = 0xff000000u | (v << 16) | (v << 8) | v;
+			}
+		}
+	}
+
+	ok = WebPEncode(&config, &pic);
 	WebPPictureFree(&pic);
-	free(rgb);
 
 	if(!ok) {
 		WebPMemoryWriterClear(&wrt);
@@ -402,7 +412,7 @@ uint8_t* webpEncodeLosslessGray(
 
 uint8_t* webpEncodeLosslessRGB(
 	const uint8_t* rgb, int width, int height, int stride,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 ) {
 	WebPConfig config;
 	WebPPicture pic;
@@ -417,7 +427,7 @@ uint8_t* webpEncodeLosslessRGB(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
-	config.thread_level = 1;
+	config.thread_level = thread_level;
 
 	if(!WebPPictureInit(&pic)) {
 		return NULL;
@@ -443,7 +453,7 @@ uint8_t* webpEncodeLosslessRGB(
 
 uint8_t* webpEncodeLosslessRGBA(
 	int exact, const uint8_t* rgba, int width, int height, int stride,
-	int method, int target_size, int alpha_quality, int autofilter, size_t* output_size
+	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 ) {
 	WebPPicture pic;
 	WebPMemoryWriter wrt;
@@ -460,7 +470,7 @@ uint8_t* webpEncodeLosslessRGBA(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
-	config.thread_level = 1;
+	config.thread_level = thread_level;
 
 	pic.use_argb = 1;
 	pic.width = width;
