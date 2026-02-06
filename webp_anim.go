@@ -35,9 +35,12 @@ type Animation struct {
 // DecodeAll reads a WEBP image from r and returns all frames.
 // Delay values are in milliseconds.
 func DecodeAll(r io.Reader) (*Animation, error) {
-	data, err := io.ReadAll(r)
+	data, release, err := readAllPooled(r)
 	if err != nil {
 		return nil, err
+	}
+	if release != nil {
+		defer release()
 	}
 	return decodeAll(data)
 }

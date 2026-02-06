@@ -32,13 +32,13 @@ func LoadConfigEx(name string) (config Config, err error) {
 	}
 	defer f.Close()
 
-	header := make([]byte, maxWebpHeaderSize)
-	n, err := f.Read(header)
+	var header [maxWebpHeaderSize]byte
+	n, err := f.Read(header[:])
 	if err != nil && err != io.EOF {
 		return
 	}
-	header = header[:n]
-	width, height, hasAlpha, hasAnimation, format, err := GetInfo(header)
+	headerSlice := header[:n]
+	width, height, hasAlpha, hasAnimation, format, err := GetInfo(headerSlice)
 	if err != nil {
 		return
 	}
@@ -59,13 +59,13 @@ func LoadConfig(name string) (config image.Config, err error) {
 	}
 	defer f.Close()
 
-	header := make([]byte, maxWebpHeaderSize)
-	n, err := f.Read(header)
+	var header [maxWebpHeaderSize]byte
+	n, err := f.Read(header[:])
 	if err != nil && err != io.EOF {
 		return
 	}
-	header = header[:n]
-	width, height, _, _, _, err := GetInfo(header)
+	headerSlice := header[:n]
+	width, height, _, _, _, err := GetInfo(headerSlice)
 	if err != nil {
 		return
 	}
@@ -104,13 +104,13 @@ func Load(name string) (m image.Image, err error) {
 // DecodeConfigEx returns the color model, dimensions and animation flag of a WEBP image
 // without decoding the entire image.
 func DecodeConfigEx(r io.Reader) (config Config, err error) {
-	header := make([]byte, maxWebpHeaderSize)
-	n, err := r.Read(header)
+	var header [maxWebpHeaderSize]byte
+	n, err := r.Read(header[:])
 	if err != nil && err != io.EOF {
 		return
 	}
-	header, err = header[:n], nil
-	width, height, hasAlpha, hasAnimation, format, err := GetInfo(header)
+	headerSlice := header[:n]
+	width, height, hasAlpha, hasAnimation, format, err := GetInfo(headerSlice)
 	if err != nil {
 		return
 	}
@@ -126,13 +126,13 @@ func DecodeConfigEx(r io.Reader) (config Config, err error) {
 // DecodeConfig returns the color model and dimensions of a WEBP image without
 // decoding the entire image.
 func DecodeConfig(r io.Reader) (config image.Config, err error) {
-	header := make([]byte, maxWebpHeaderSize)
-	n, err := r.Read(header)
+	var header [maxWebpHeaderSize]byte
+	n, err := r.Read(header[:])
 	if err != nil && err != io.EOF {
 		return
 	}
-	header, err = header[:n], nil
-	width, height, _, _, _, err := GetInfo(header)
+	headerSlice := header[:n]
+	width, height, _, _, _, err := GetInfo(headerSlice)
 	if err != nil {
 		return
 	}
@@ -144,9 +144,12 @@ func DecodeConfig(r io.Reader) (config image.Config, err error) {
 
 // Decode reads a WEBP image from r and returns it as an image.Image.
 func Decode(r io.Reader) (m image.Image, err error) {
-	data, err := io.ReadAll(r)
+	data, release, err := readAllPooled(r)
 	if err != nil {
 		return
+	}
+	if release != nil {
+		defer release()
 	}
 	if m, err = DecodeRGBA(data); err != nil {
 		return
