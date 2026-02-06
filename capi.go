@@ -18,8 +18,9 @@ package webp
 #cgo CFLAGS: -I./internal/libwebp-1.6.0/
 #cgo CFLAGS: -I./internal/libwebp-1.6.0/src/
 #cgo CFLAGS: -I./internal/include/
-#cgo CFLAGS: -Wno-pointer-sign -DWEBP_USE_THREAD
-#cgo !windows LDFLAGS: -lm
+#cgo CFLAGS: -Wno-pointer-sign -DWEBP_USE_THREAD -O3 -ffast-math
+#cgo !windows CFLAGS: -march=native -flto
+#cgo !windows LDFLAGS: -lm -flto
 
 #include "webp.h"
 
@@ -80,17 +81,26 @@ func webpDecodeRGB(data []byte) (pix []byte, width, height int, err error) {
 		return
 	}
 
-	var cw, ch C.int
-	var cptr = C.webpDecodeRGB((*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)), &cw, &ch)
-	if cptr == nil {
+	width, height, _, _, _, err = webpGetInfo(data)
+	if err != nil {
+		return
+	}
+	if width <= 0 || height <= 0 {
+		err = errors.New("webpDecodeRGB: invalid image dimensions")
+		return
+	}
+
+	pix = make([]byte, width*height*3)
+	stride := C.int(3 * width)
+	res := C.webpDecodeRGBInto(
+		(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
+		C.int(width), C.int(height), stride, (*C.uint8_t)(unsafe.Pointer(&pix[0])), 1,
+	)
+	if res != C.VP8_STATUS_OK {
+		pix = nil
 		err = errors.New("webpDecodeRGB: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	pix = make([]byte, int(cw*ch*3))
-	copy(pix, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(pix):len(pix)])
-	width, height = int(cw), int(ch)
 	return
 }
 
@@ -100,17 +110,26 @@ func webpDecodeRGBA(data []byte) (pix []byte, width, height int, err error) {
 		return
 	}
 
-	var cw, ch C.int
-	var cptr = C.webpDecodeRGBA((*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)), &cw, &ch)
-	if cptr == nil {
+	width, height, _, _, _, err = webpGetInfo(data)
+	if err != nil {
+		return
+	}
+	if width <= 0 || height <= 0 {
+		err = errors.New("webpDecodeRGBA: invalid image dimensions")
+		return
+	}
+
+	pix = make([]byte, width*height*4)
+	stride := C.int(4 * width)
+	res := C.webpDecodeRGBAInto(
+		(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
+		C.int(width), C.int(height), stride, (*C.uint8_t)(unsafe.Pointer(&pix[0])), 1,
+	)
+	if res != C.VP8_STATUS_OK {
+		pix = nil
 		err = errors.New("webpDecodeRGBA: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	pix = make([]byte, int(cw*ch*4))
-	copy(pix, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(pix):len(pix)])
-	width, height = int(cw), int(ch)
 	return
 }
 

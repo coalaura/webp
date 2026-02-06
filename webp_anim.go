@@ -4,8 +4,9 @@ package webp
 #cgo CFLAGS: -I./internal/libwebp-1.6.0/
 #cgo CFLAGS: -I./internal/libwebp-1.6.0/src/
 #cgo CFLAGS: -I./internal/include/
-#cgo CFLAGS: -Wno-pointer-sign -DWEBP_USE_THREAD
-#cgo !windows LDFLAGS: -lm
+#cgo CFLAGS: -Wno-pointer-sign -DWEBP_USE_THREAD -O3 -ffast-math
+#cgo !windows CFLAGS: -march=native -flto
+#cgo !windows LDFLAGS: -lm -flto
 
 #include "webp.h"
 #include <webp/demux.h>
@@ -222,6 +223,7 @@ func EncodeAll(w io.Writer, anim *Animation, opt *Options) error {
 	if exact {
 		config.exact = 1
 	}
+	config.thread_level = 1
 	if C.WebPValidateConfig(&config) == 0 {
 		return errors.New("webp: EncodeAll, invalid config")
 	}

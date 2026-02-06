@@ -88,6 +88,42 @@ uint8_t* webpDecodeRGBA(
 	return WebPDecodeRGBA(data, data_size, width, height);
 }
 
+int webpDecodeRGBInto(const uint8_t* data, size_t data_size,
+	int width, int height, int outStride, uint8_t* out, int use_threads
+) {
+	WebPDecoderConfig config;
+	if (!WebPInitDecoderConfig(&config)) {
+		return -1;
+	}
+
+	config.options.use_threads = use_threads;
+	config.output.colorspace = MODE_RGB;
+	config.output.u.RGBA.rgba = out;
+	config.output.u.RGBA.stride = outStride;
+	config.output.u.RGBA.size = outStride * height;
+	config.output.is_external_memory = 1;
+
+	return WebPDecode(data, data_size, &config);
+}
+
+int webpDecodeRGBAInto(const uint8_t* data, size_t data_size,
+	int width, int height, int outStride, uint8_t* out, int use_threads
+) {
+	WebPDecoderConfig config;
+	if (!WebPInitDecoderConfig(&config)) {
+		return -1;
+	}
+
+	config.options.use_threads = use_threads;
+	config.output.colorspace = MODE_RGBA;
+	config.output.u.RGBA.rgba = out;
+	config.output.u.RGBA.stride = outStride;
+	config.output.u.RGBA.size = outStride * height;
+	config.output.is_external_memory = 1;
+
+	return WebPDecode(data, data_size, &config);
+}
+
 int webpDecodeGrayToSize(const uint8_t* data, size_t data_size,
 	int width, int height, int outStride, uint8_t* out
 ) {
@@ -98,6 +134,7 @@ int webpDecodeGrayToSize(const uint8_t* data, size_t data_size,
 
 	config.options.bypass_filtering = 1;
 	config.options.no_fancy_upsampling = 1;
+	config.options.use_threads = 1;
 	config.options.use_scaling = 1;
 	config.options.scaled_width = width;
 	config.options.scaled_height = height;
@@ -133,6 +170,7 @@ int webpDecodeRGBToSize(const uint8_t* data, size_t data_size,
 
 	config.options.bypass_filtering = 1;
 	config.options.no_fancy_upsampling = 1;
+	config.options.use_threads = 1;
 	config.options.use_scaling = 1;
 	config.options.scaled_width = width;
 	config.options.scaled_height = height;
@@ -155,6 +193,7 @@ int webpDecodeRGBAToSize(const uint8_t* data, size_t data_size,
 
 	config.options.bypass_filtering = 1;
 	config.options.no_fancy_upsampling = 1;
+	config.options.use_threads = 1;
 	config.options.use_scaling = 1;
 	config.options.scaled_width = width;
 	config.options.scaled_height = height;
@@ -186,6 +225,7 @@ uint8_t* webpEncodeGray(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
+	config.thread_level = 1;
 
 	if((rgb = (uint8_t*)malloc(width*height*3)) == NULL) {
 		return NULL;
@@ -239,6 +279,7 @@ uint8_t* webpEncodeRGB(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
+	config.thread_level = 1;
 
 	if(!WebPPictureInit(&pic)) {
 		return NULL;
@@ -276,6 +317,7 @@ uint8_t* webpEncodeRGBA(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
+	config.thread_level = 1;
 
 	if(!WebPPictureInit(&pic)) {
 		return NULL;
@@ -318,6 +360,7 @@ uint8_t* webpEncodeLosslessGray(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
+	config.thread_level = 1;
 
 	if((rgb = (uint8_t*)malloc(width*height*3)) == NULL) {
 		return NULL;
@@ -374,6 +417,7 @@ uint8_t* webpEncodeLosslessRGB(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
+	config.thread_level = 1;
 
 	if(!WebPPictureInit(&pic)) {
 		return NULL;
@@ -416,6 +460,7 @@ uint8_t* webpEncodeLosslessRGBA(
 	config.target_size = target_size;
 	config.alpha_quality = alpha_quality;
 	config.autofilter = autofilter;
+	config.thread_level = 1;
 
 	pic.use_argb = 1;
 	pic.width = width;

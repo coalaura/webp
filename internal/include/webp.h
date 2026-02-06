@@ -32,6 +32,15 @@ uint8_t* webpDecodeRGBA(
 	int* width, int* height
 );
 
+int webpDecodeRGBInto(
+	const uint8_t* data, size_t data_size,
+	int width, int height, int outStride, uint8_t* out, int use_threads
+);
+int webpDecodeRGBAInto(
+	const uint8_t* data, size_t data_size,
+	int width, int height, int outStride, uint8_t* out, int use_threads
+);
+
 int webpDecodeGrayToSize(const uint8_t* data, size_t data_size,
 	int width, int height, int outStride, uint8_t* out
 );
