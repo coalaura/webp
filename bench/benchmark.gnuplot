@@ -23,4 +23,5 @@ set grid ytics
 #set yrange [0:50]
 plot \
 	"benchmark_result_coalaura_webp.txt" using 3:xticlabels(1) title "coalaura/webp" with linespoints, \
+	"benchmark_result_chai2010_webp.txt" using 3:xticlabels(1) title "chai2010/webp" with linespoints, \
 	"benchmark_result_x_image_webp.txt" using 3:xticlabels(1) title "x/image/webp" with linespoints, \
