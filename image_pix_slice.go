@@ -9,15 +9,15 @@ import (
 	"unsafe"
 )
 
+// PixSlice is a byte-backed view over pixel data.
 type PixSlice []byte
 
-// AsPixSilce convert a normal slice to byte slice.
+// AsPixSilce converts a slice to a PixSlice view.
 //
 // Convert []X to []byte:
 //
 //	x := make([]X, xLen)
 //	y := AsPixSilce(x)
-//
 func AsPixSilce(slice interface{}) (d PixSlice) {
 	sv := reflect.ValueOf(slice)
 	h := (*reflect.SliceHeader)((unsafe.Pointer(&d)))
@@ -27,12 +27,12 @@ func AsPixSilce(slice interface{}) (d PixSlice) {
 	return
 }
 
-// Slice convert a normal slice to new type slice.
+// Slice converts PixSlice to a slice of the provided type.
 //
 // Convert []byte to []Y:
+//
 //	x := make([]byte, xLen)
 //	y := PixSlice(x).Slice(reflect.TypeOf([]Y(nil))).([]Y)
-//
 func (d PixSlice) Slice(newSliceType reflect.Type) interface{} {
 	sv := reflect.ValueOf(d)
 	newSlice := reflect.New(newSliceType)
@@ -43,10 +43,12 @@ func (d PixSlice) Slice(newSliceType reflect.Type) interface{} {
 	return newSlice.Elem().Interface()
 }
 
+// Bytes returns the data as a byte slice.
 func (d PixSlice) Bytes() (v []byte) {
 	return d
 }
 
+// Int8s reinterprets the data as []int8.
 func (d PixSlice) Int8s() (v []int8) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -57,6 +59,7 @@ func (d PixSlice) Int8s() (v []int8) {
 	return
 }
 
+// Int16s reinterprets the data as []int16.
 func (d PixSlice) Int16s() (v []int16) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -67,6 +70,7 @@ func (d PixSlice) Int16s() (v []int16) {
 	return
 }
 
+// Int32s reinterprets the data as []int32.
 func (d PixSlice) Int32s() (v []int32) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -77,6 +81,7 @@ func (d PixSlice) Int32s() (v []int32) {
 	return
 }
 
+// Int64s reinterprets the data as []int64.
 func (d PixSlice) Int64s() (v []int64) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -87,10 +92,12 @@ func (d PixSlice) Int64s() (v []int64) {
 	return
 }
 
+// Uint8s reinterprets the data as []uint8.
 func (d PixSlice) Uint8s() []uint8 {
 	return d
 }
 
+// Uint16s reinterprets the data as []uint16.
 func (d PixSlice) Uint16s() (v []uint16) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -101,6 +108,7 @@ func (d PixSlice) Uint16s() (v []uint16) {
 	return
 }
 
+// Uint32s reinterprets the data as []uint32.
 func (d PixSlice) Uint32s() (v []uint32) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -111,6 +119,7 @@ func (d PixSlice) Uint32s() (v []uint32) {
 	return
 }
 
+// Uint64s reinterprets the data as []uint64.
 func (d PixSlice) Uint64s() (v []uint64) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -121,6 +130,7 @@ func (d PixSlice) Uint64s() (v []uint64) {
 	return
 }
 
+// Float32s reinterprets the data as []float32.
 func (d PixSlice) Float32s() (v []float32) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -131,6 +141,7 @@ func (d PixSlice) Float32s() (v []float32) {
 	return
 }
 
+// Float64s reinterprets the data as []float64.
 func (d PixSlice) Float64s() (v []float64) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -141,6 +152,7 @@ func (d PixSlice) Float64s() (v []float64) {
 	return
 }
 
+// Complex64s reinterprets the data as []complex64.
 func (d PixSlice) Complex64s() (v []complex64) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -151,6 +163,7 @@ func (d PixSlice) Complex64s() (v []complex64) {
 	return
 }
 
+// Complex128s reinterprets the data as []complex128.
 func (d PixSlice) Complex128s() (v []complex128) {
 	h0 := (*reflect.SliceHeader)(unsafe.Pointer(&d))
 	h1 := (*reflect.SliceHeader)(unsafe.Pointer(&v))
@@ -161,6 +174,7 @@ func (d PixSlice) Complex128s() (v []complex128) {
 	return
 }
 
+// Value reads the i-th element as float64 for the given kind.
 func (d PixSlice) Value(i int, dataType reflect.Kind) float64 {
 	switch dataType {
 	case reflect.Int8:
@@ -191,6 +205,7 @@ func (d PixSlice) Value(i int, dataType reflect.Kind) float64 {
 	return 0
 }
 
+// SetValue writes the i-th element from v for the given kind.
 func (d PixSlice) SetValue(i int, dataType reflect.Kind, v float64) {
 	switch dataType {
 	case reflect.Int8:
@@ -220,6 +235,7 @@ func (d PixSlice) SetValue(i int, dataType reflect.Kind, v float64) {
 	}
 }
 
+// SwapEndian swaps byte order for elements of the provided kind.
 func (d PixSlice) SwapEndian(dataType reflect.Kind) {
 	switch dataType {
 	case reflect.Int16, reflect.Uint16:

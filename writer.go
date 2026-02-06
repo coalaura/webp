@@ -15,8 +15,13 @@ import (
 	"reflect"
 )
 
+// DefaultQuality is the default lossy quality used by Encode.
 const DefaultQuality = 90
+
+// DefaultMethod is the default encoding method used by Encode.
 const DefaultMethod = 4
+
+// DefaultAlphaQuality is the default alpha plane quality used by Encode.
 const DefaultAlphaQuality = 100
 
 // Options are the encoding parameters.
@@ -35,6 +40,7 @@ type colorModeler interface {
 	ColorModel() color.Model
 }
 
+// Save encodes m as WebP and writes it to the named file.
 func Save(name string, m image.Image, opt *Options) (err error) {
 	f, err := os.Create(name)
 	if err != nil {

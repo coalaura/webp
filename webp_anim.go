@@ -72,8 +72,7 @@ type Animation struct {
 }
 
 // DecodeAll reads a WEBP image from r and returns all frames.
-// Delay values are in milliseconds.
-// If opt is nil, defaults are used.
+// Delay values are in milliseconds. If opt is nil, defaults are used.
 func DecodeAll(r io.Reader, opt *DecodeOptions) (*Animation, error) {
 	useThreads := useDecodeThreads(opt)
 
@@ -176,7 +175,7 @@ func decodeAll(data []byte, useThreads bool) (*Animation, error) {
 }
 
 // EncodeAll writes all frames in anim to w as an animated WEBP.
-// Delay values are in milliseconds.
+// Delay values are in milliseconds. If opt is nil, defaults are used.
 func EncodeAll(w io.Writer, anim *Animation, opt *Options) error {
 	if anim == nil {
 		return errors.New("webp: EncodeAll, animation is nil")

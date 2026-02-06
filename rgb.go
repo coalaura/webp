@@ -15,38 +15,47 @@ var (
 	_ MemP        = (*RGBImage)(nil)
 )
 
+// RGBImage stores an RGB image in packed 8-bit format.
 type RGBImage struct {
 	XPix    []uint8
 	XStride int
 	XRect   image.Rectangle
 }
 
+// MemPMagic returns the MemP magic string.
 func (p *RGBImage) MemPMagic() string {
 	return MemPMagic
 }
 
+// Bounds returns the image bounds.
 func (p *RGBImage) Bounds() image.Rectangle {
 	return p.XRect
 }
 
+// Channels returns the number of channels.
 func (p *RGBImage) Channels() int {
 	return 3
 }
 
+// DataType returns the underlying element kind.
 func (p *RGBImage) DataType() reflect.Kind {
 	return reflect.Uint8
 }
 
+// Pix returns the raw pixel buffer.
 func (p *RGBImage) Pix() []byte {
 	return p.XPix
 }
 
+// Stride returns the byte stride between rows.
 func (p *RGBImage) Stride() int {
 	return p.XStride
 }
 
+// ColorModel returns the image's color model.
 func (p *RGBImage) ColorModel() color.Model { return color.RGBAModel }
 
+// At returns the color of the pixel at (x, y).
 func (p *RGBImage) At(x, y int) color.Color {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return color.RGBA{}
@@ -60,6 +69,7 @@ func (p *RGBImage) At(x, y int) color.Color {
 	}
 }
 
+// RGBAt returns the RGB values at (x, y).
 func (p *RGBImage) RGBAt(x, y int) [3]uint8 {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return [3]uint8{}
@@ -78,6 +88,7 @@ func (p *RGBImage) PixOffset(x, y int) int {
 	return (y-p.XRect.Min.Y)*p.XStride + (x-p.XRect.Min.X)*3
 }
 
+// Set sets the pixel at (x, y) to c.
 func (p *RGBImage) Set(x, y int, c color.Color) {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return
@@ -89,6 +100,7 @@ func (p *RGBImage) Set(x, y int, c color.Color) {
 	p.XPix[i+2] = c1.B
 }
 
+// SetRGB sets the pixel at (x, y) to an RGB triplet.
 func (p *RGBImage) SetRGB(x, y int, c [3]uint8) {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return
@@ -133,6 +145,7 @@ func NewRGBImage(r image.Rectangle) *RGBImage {
 	}
 }
 
+// NewRGBImageFrom converts m into an RGBImage.
 func NewRGBImageFrom(m image.Image) *RGBImage {
 	if m, ok := m.(*RGBImage); ok {
 		return m

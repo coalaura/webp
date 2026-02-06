@@ -12,6 +12,7 @@ import (
 	"unsafe"
 )
 
+// MemPMagic is the magic string used by MemP images.
 const (
 	MemPMagic = "MemP" // See https://github.com/chai2010/image
 )
@@ -28,7 +29,8 @@ var (
 	_ MemP        = (*MemPImage)(nil)
 )
 
-// MemP Image Spec (Native Endian), see https://github.com/chai2010/image.
+// MemP defines a native-endian packed pixel format.
+// See https://github.com/chai2010/image.
 type MemP interface {
 	MemPMagic() string
 	Bounds() image.Rectangle
@@ -41,6 +43,7 @@ type MemP interface {
 	Stride() int
 }
 
+// MemPImage stores pixels in a packed native-endian layout.
 type MemPImage struct {
 	XMemPMagic string // MemP
 	XRect      image.Rectangle
@@ -50,6 +53,7 @@ type MemPImage struct {
 	XStride    int
 }
 
+// NewMemPImage allocates a MemPImage with the given bounds, channels, and data type.
 func NewMemPImage(r image.Rectangle, channels int, dataType reflect.Kind) *MemPImage {
 	m := &MemPImage{
 		XMemPMagic: MemPMagic,
@@ -62,7 +66,8 @@ func NewMemPImage(r image.Rectangle, channels int, dataType reflect.Kind) *MemPI
 	return m
 }
 
-// m is MemP or image.Image
+// AsMemPImage wraps supported images as MemPImage without copying when possible.
+// m may be a MemP implementation or a standard image type.
 func AsMemPImage(m interface{}) (p *MemPImage, ok bool) {
 	if m, ok := m.(*MemPImage); ok {
 		return m, true
@@ -100,6 +105,7 @@ func AsMemPImage(m interface{}) (p *MemPImage, ok bool) {
 	return nil, false
 }
 
+// NewMemPImageFrom converts m into a MemPImage.
 func NewMemPImageFrom(m image.Image) *MemPImage {
 	if p, ok := m.(*MemPImage); ok {
 		return p.Clone()
@@ -205,6 +211,7 @@ func NewMemPImageFrom(m image.Image) *MemPImage {
 	}
 }
 
+// Clone returns a deep copy of p.
 func (p *MemPImage) Clone() *MemPImage {
 	q := new(MemPImage)
 	*q = *p
@@ -212,34 +219,42 @@ func (p *MemPImage) Clone() *MemPImage {
 	return q
 }
 
+// MemPMagic returns the MemP magic string.
 func (p *MemPImage) MemPMagic() string {
 	return p.XMemPMagic
 }
 
+// Bounds returns the image bounds.
 func (p *MemPImage) Bounds() image.Rectangle {
 	return p.XRect
 }
 
+// Channels returns the number of channels.
 func (p *MemPImage) Channels() int {
 	return p.XChannels
 }
 
+// DataType returns the underlying element kind.
 func (p *MemPImage) DataType() reflect.Kind {
 	return p.XDataType
 }
 
+// Pix returns the raw pixel buffer.
 func (p *MemPImage) Pix() []byte {
 	return p.XPix
 }
 
+// Stride returns the byte stride between rows.
 func (p *MemPImage) Stride() int {
 	return p.XStride
 }
 
+// ColorModel returns the image's color model.
 func (p *MemPImage) ColorModel() color.Model {
 	return ColorModel(p.XChannels, p.XDataType)
 }
 
+// At returns the color of the pixel at (x, y).
 func (p *MemPImage) At(x, y int) color.Color {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return MemPColor{
@@ -256,6 +271,7 @@ func (p *MemPImage) At(x, y int) color.Color {
 	}
 }
 
+// PixelAt returns a view of the pixel data at (x, y).
 func (p *MemPImage) PixelAt(x, y int) []byte {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return nil
@@ -265,6 +281,7 @@ func (p *MemPImage) PixelAt(x, y int) []byte {
 	return p.XPix[i:][:n]
 }
 
+// Set sets the pixel at (x, y) to c.
 func (p *MemPImage) Set(x, y int, c color.Color) {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return
@@ -275,6 +292,7 @@ func (p *MemPImage) Set(x, y int, c color.Color) {
 	copy(p.XPix[i:][:n], v.Pix)
 }
 
+// SetPixel copies raw pixel bytes into the pixel at (x, y).
 func (p *MemPImage) SetPixel(x, y int, c []byte) {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return
@@ -284,10 +302,13 @@ func (p *MemPImage) SetPixel(x, y int, c []byte) {
 	copy(p.XPix[i:][:n], c)
 }
 
+// PixOffset returns the index of the first pixel byte at (x, y).
 func (p *MemPImage) PixOffset(x, y int) int {
 	return (y-p.XRect.Min.Y)*p.XStride + (x-p.XRect.Min.X)*SizeofPixel(p.XChannels, p.XDataType)
 }
 
+// SubImage returns an image representing the portion of p visible through r.
+// The returned value shares pixels with the original image.
 func (p *MemPImage) SubImage(r image.Rectangle) image.Image {
 	r = r.Intersect(p.XRect)
 	// If r1 and r2 are Rectangles, r1.Intersect(r2) is not guaranteed to be inside
@@ -306,6 +327,7 @@ func (p *MemPImage) SubImage(r image.Rectangle) image.Image {
 	}
 }
 
+// AsStdImage returns a standard library image if p can be represented directly.
 func (p *MemPImage) AsStdImage() (m image.Image, ok bool) {
 	switch {
 	case p.XChannels == 1 && p.XDataType == reflect.Uint8:
@@ -325,6 +347,7 @@ func (p *MemPImage) AsStdImage() (m image.Image, ok bool) {
 	}
 }
 
+// StdImage converts p into a standard library image.
 func (p *MemPImage) StdImage() image.Image {
 	switch {
 	case p.XChannels == 1 && p.XDataType == reflect.Uint8:
@@ -366,6 +389,7 @@ func (p *MemPImage) StdImage() image.Image {
 	return p
 }
 
+// ChannelsOf returns the number of color channels in m.
 func ChannelsOf(m image.Image) int {
 	if m, ok := AsMemPImage(m); ok {
 		return m.XChannels
@@ -381,6 +405,7 @@ func ChannelsOf(m image.Image) int {
 	return 4
 }
 
+// DepthOf returns the per-channel bit depth of m.
 func DepthOf(m image.Image) int {
 	if m, ok := m.(*MemPImage); ok {
 		return SizeofKind(m.XDataType) * 8
@@ -407,10 +432,12 @@ func DepthOf(m image.Image) int {
 	return 2 * 8
 }
 
+// SizeofImager reports the approximate size in bytes of an image.
 type SizeofImager interface {
 	SizeofImage() int
 }
 
+// SizeofImage returns an approximate in-memory size for m.
 func SizeofImage(m image.Image) int {
 	if m, ok := m.(SizeofImager); ok {
 		return m.SizeofImage()

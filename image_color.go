@@ -9,12 +9,14 @@ import (
 	"reflect"
 )
 
+// MemPColor is a packed color value for MemP images.
 type MemPColor struct {
 	Channels int
 	DataType reflect.Kind
 	Pix      PixSlice
 }
 
+// RGBA implements the color.Color interface.
 func (c MemPColor) RGBA() (r, g, b, a uint32) {
 	if len(c.Pix) == 0 {
 		return
@@ -111,6 +113,7 @@ func (c MemPColor) RGBA() (r, g, b, a uint32) {
 	return
 }
 
+// ColorModelInterface exposes channel count and data type for a color model.
 type ColorModelInterface interface {
 	Channels() int
 	DataType() reflect.Kind
@@ -136,6 +139,7 @@ func (m _ColorModelT) DataType() reflect.Kind {
 	return m.XDataType
 }
 
+// ColorModel returns a color.Model for the given channels and data type.
 func ColorModel(channels int, dataType reflect.Kind) color.Model {
 	return _ColorModelT{
 		XChannels: channels,
@@ -218,6 +222,7 @@ func colorModelConvert(channels int, dataType reflect.Kind, c color.Color) color
 	return c2
 }
 
+// SizeofKind returns the size in bytes for the provided kind.
 func SizeofKind(dataType reflect.Kind) int {
 	switch dataType {
 	case reflect.Int8:
@@ -248,6 +253,7 @@ func SizeofKind(dataType reflect.Kind) int {
 	return 0
 }
 
+// SizeofPixel returns the size in bytes for a pixel of the given shape.
 func SizeofPixel(channels int, dataType reflect.Kind) int {
 	return channels * SizeofKind(dataType)
 }

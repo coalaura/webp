@@ -15,38 +15,47 @@ var (
 	_ MemP        = (*RGB48Image)(nil)
 )
 
+// RGB48Image stores an RGB image with 16-bit channels in native endian order.
 type RGB48Image struct {
 	XPix    []uint8 // XPix use Native Endian (same as MemP) !!!
 	XStride int
 	XRect   image.Rectangle
 }
 
+// MemPMagic returns the MemP magic string.
 func (p *RGB48Image) MemPMagic() string {
 	return MemPMagic
 }
 
+// Bounds returns the image bounds.
 func (p *RGB48Image) Bounds() image.Rectangle {
 	return p.XRect
 }
 
+// Channels returns the number of channels.
 func (p *RGB48Image) Channels() int {
 	return 3
 }
 
+// DataType returns the underlying element kind.
 func (p *RGB48Image) DataType() reflect.Kind {
 	return reflect.Uint16
 }
 
+// Pix returns the raw pixel buffer.
 func (p *RGB48Image) Pix() []byte {
 	return p.XPix
 }
 
+// Stride returns the byte stride between rows.
 func (p *RGB48Image) Stride() int {
 	return p.XStride
 }
 
+// ColorModel returns the image's color model.
 func (p *RGB48Image) ColorModel() color.Model { return color.RGBA64Model }
 
+// At returns the color of the pixel at (x, y).
 func (p *RGB48Image) At(x, y int) color.Color {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return color.RGBA64{}
@@ -69,6 +78,7 @@ func (p *RGB48Image) At(x, y int) color.Color {
 	}
 }
 
+// RGB48At returns the RGB values at (x, y).
 func (p *RGB48Image) RGB48At(x, y int) [3]uint16 {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return [3]uint16{}
@@ -95,6 +105,7 @@ func (p *RGB48Image) PixOffset(x, y int) int {
 	return (y-p.XRect.Min.Y)*p.XStride + (x-p.XRect.Min.X)*3
 }
 
+// Set sets the pixel at (x, y) to c.
 func (p *RGB48Image) Set(x, y int, c color.Color) {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return
@@ -118,6 +129,7 @@ func (p *RGB48Image) Set(x, y int, c color.Color) {
 	}
 }
 
+// SetRGB48 sets the pixel at (x, y) to an RGB triplet.
 func (p *RGB48Image) SetRGB48(x, y int, c [3]uint16) {
 	if !(image.Point{x, y}.In(p.XRect)) {
 		return
@@ -174,6 +186,7 @@ func NewRGB48Image(r image.Rectangle) *RGB48Image {
 	}
 }
 
+// NewRGB48ImageFrom converts m into an RGB48Image.
 func NewRGB48ImageFrom(m image.Image) *RGB48Image {
 	if m, ok := m.(*RGB48Image); ok {
 		return m

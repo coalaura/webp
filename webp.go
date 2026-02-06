@@ -18,10 +18,13 @@ const (
 	maxWebpHeaderSize = 32
 )
 
+// GetInfo returns image dimensions and WebP bitstream flags.
 func GetInfo(data []byte) (width, height int, hasAlpha bool, hasAnimation bool, format int, err error) {
 	return webpGetInfo(data)
 }
 
+// DecodeGray decodes a WebP payload into a Gray image.
+// If opt is nil, defaults are used.
 func DecodeGray(data []byte, opt *DecodeOptions) (m *image.Gray, err error) {
 	pix, w, h, err := webpDecodeGray(data)
 	if err != nil {
@@ -35,6 +38,8 @@ func DecodeGray(data []byte, opt *DecodeOptions) (m *image.Gray, err error) {
 	return
 }
 
+// DecodeRGB decodes a WebP payload into an RGBImage.
+// If opt is nil, defaults are used.
 func DecodeRGB(data []byte, opt *DecodeOptions) (m *RGBImage, err error) {
 	useThreads := useDecodeThreads(opt)
 
@@ -50,6 +55,8 @@ func DecodeRGB(data []byte, opt *DecodeOptions) (m *RGBImage, err error) {
 	return
 }
 
+// DecodeRGBA decodes a WebP payload into an RGBA image.
+// If opt is nil, defaults are used.
 func DecodeRGBA(data []byte, opt *DecodeOptions) (m *image.RGBA, err error) {
 	useThreads := useDecodeThreads(opt)
 
@@ -68,6 +75,7 @@ func DecodeRGBA(data []byte, opt *DecodeOptions) (m *image.RGBA, err error) {
 // DecodeGrayToSize decodes a Gray image scaled to the given dimensions. For
 // large images, the DecodeXXXToSize methods are significantly faster and
 // require less memory compared to decoding a full-size image and then resizing it.
+// If opt is nil, defaults are used.
 func DecodeGrayToSize(data []byte, width, height int, opt *DecodeOptions) (m *image.Gray, err error) {
 	pix, err := webpDecodeGrayToSize(data, width, height, useDecodeThreads(opt))
 	if err != nil {
@@ -82,6 +90,7 @@ func DecodeGrayToSize(data []byte, width, height int, opt *DecodeOptions) (m *im
 }
 
 // DecodeRGBToSize decodes an RGB image scaled to the given dimensions.
+// If opt is nil, defaults are used.
 func DecodeRGBToSize(data []byte, width, height int, opt *DecodeOptions) (m *RGBImage, err error) {
 	pix, err := webpDecodeRGBToSize(data, width, height, useDecodeThreads(opt))
 	if err != nil {
@@ -95,7 +104,8 @@ func DecodeRGBToSize(data []byte, width, height int, opt *DecodeOptions) (m *RGB
 	return
 }
 
-// DecodeRGBAToSize decodes a Gray image scaled to the given dimensions.
+// DecodeRGBAToSize decodes an RGBA image scaled to the given dimensions.
+// If opt is nil, defaults are used.
 func DecodeRGBAToSize(data []byte, width, height int, opt *DecodeOptions) (m *image.RGBA, err error) {
 	pix, err := webpDecodeRGBAToSize(data, width, height, useDecodeThreads(opt))
 	if err != nil {
@@ -109,32 +119,38 @@ func DecodeRGBAToSize(data []byte, width, height int, opt *DecodeOptions) (m *im
 	return
 }
 
+// EncodeGray encodes an image as lossy grayscale WebP.
 func EncodeGray(m image.Image, quality float32, method int) (data []byte, err error) {
 	return encodeGray(m, quality, method, 0, DefaultAlphaQuality, false, false)
 }
 
+// EncodeRGB encodes an image as lossy RGB WebP.
 func EncodeRGB(m image.Image, quality float32, method int) (data []byte, err error) {
 	return encodeRGB(m, quality, method, 0, DefaultAlphaQuality, false, false)
 }
 
+// EncodeRGBA encodes an image as lossy RGBA WebP.
 func EncodeRGBA(m image.Image, quality float32, method int) (data []byte, err error) {
 	return encodeRGBA(m, quality, method, 0, DefaultAlphaQuality, false, false)
 }
 
+// EncodeLosslessGray encodes an image as lossless grayscale WebP.
 func EncodeLosslessGray(m image.Image, method int) (data []byte, err error) {
 	return encodeLosslessGray(m, method, 0, DefaultAlphaQuality, false, false)
 }
 
+// EncodeLosslessRGB encodes an image as lossless RGB WebP.
 func EncodeLosslessRGB(m image.Image, method int) (data []byte, err error) {
 	return encodeLosslessRGB(m, method, 0, DefaultAlphaQuality, false, false)
 }
 
+// EncodeLosslessRGBA encodes an image as lossless RGBA WebP.
 func EncodeLosslessRGBA(m image.Image, method int) (data []byte, err error) {
 	return encodeLosslessRGBA(m, method, 0, DefaultAlphaQuality, false, false)
 }
 
-// EncodeExactLosslessRGBA Encode lossless RGB mode with exact.
-// exact: preserve RGB values in transparent area.
+// EncodeExactLosslessRGBA encodes lossless RGBA WebP and preserves RGB values
+// in transparent areas.
 func EncodeExactLosslessRGBA(m image.Image, method int) (data []byte, err error) {
 	return encodeExactLosslessRGBA(m, method, 0, DefaultAlphaQuality, false, false)
 }
@@ -198,12 +214,12 @@ func boolToInt(v bool) int {
 	return 0
 }
 
-// GetMetadata return EXIF/ICCP/XMP format metadata.
+// GetMetadata returns EXIF/ICCP/XMP metadata from a WebP payload.
 func GetMetadata(data []byte, format string) (metadata []byte, err error) {
 	return webpGetMetadata(data, strings.ToUpper(format))
 }
 
-// SetMetadata set EXIF/ICCP/XMP format metadata.
+// SetMetadata writes EXIF/ICCP/XMP metadata into a WebP payload.
 func SetMetadata(data, metadata []byte, format string) (newData []byte, err error) {
 	return webpSetMetadata(data, metadata, format)
 }

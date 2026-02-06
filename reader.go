@@ -15,7 +15,7 @@ import (
 	"os"
 )
 
-// Config is the same as image.Config but includes alpha and animation metadata.
+// Config is like image.Config with alpha and animation metadata.
 type Config struct {
 	ColorModel   color.Model
 	Width        int  // Width in pixels, as read from the bitstream.
@@ -25,10 +25,13 @@ type Config struct {
 	Format       int  // 0 = undefined (/mixed), 1 = lossy, 2 = lossless
 }
 
+// DecodeOptions controls WebP decoding behavior.
+// A nil options value uses defaults.
 type DecodeOptions struct {
 	UseThreads bool // Enable libwebp multi-threading (default true)
 }
 
+// LoadConfigEx reads a file header and returns Config metadata.
 func LoadConfigEx(name string) (config Config, err error) {
 	f, err := os.Open(name)
 	if err != nil {
@@ -56,6 +59,7 @@ func LoadConfigEx(name string) (config Config, err error) {
 	return
 }
 
+// LoadConfig reads a file header and returns image.Config metadata.
 func LoadConfig(name string) (config image.Config, err error) {
 	f, err := os.Open(name)
 	if err != nil {
@@ -80,6 +84,7 @@ func LoadConfig(name string) (config image.Config, err error) {
 	return
 }
 
+// Load reads a WebP file from disk and returns it as an RGBA image.
 func Load(name string) (m image.Image, err error) {
 	f, err := os.Open(name)
 	if err != nil {
