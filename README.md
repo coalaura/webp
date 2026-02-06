@@ -29,7 +29,8 @@ This fork adds a few practical improvements over the original repository:
 Benchmark
 =========
 
-![](bench/benchmark_result.png)
+![](bench/benchmark_decode.png)
+![](bench/benchmark_encode.png)
 
 
 Install

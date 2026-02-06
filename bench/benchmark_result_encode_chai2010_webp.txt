@@ -1,0 +1,33 @@
+# Copyright 2015 ChaiShushan <chaishushan{AT}gmail.com>. All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+# go test -bench=Encode_.*_chai2010_webp$ -benchtime=5s
+
+# name, run times, speed, ns/op
+1_webp_a                                            502          11599347 ns/op
+1_webp_ll                                           526          11246678 ns/op
+2_webp_a                                            333          17616790 ns/op
+2_webp_ll                                           352          16697672 ns/op
+3_webp_a                                            100          53362247 ns/op
+3_webp_ll                                           100          52274754 ns/op
+4_webp_a                                            915           6510051 ns/op
+4_webp_ll                                           952           6293720 ns/op
+5_webp_a                                            268          22194031 ns/op
+5_webp_ll                                           271          22078885 ns/op
+blue_purple_pink_large_lossless                      43         137983230 ns/op
+blue_purple_pink_large_no_filter_lossy              422          14195110 ns/op
+blue_purple_pink_large_normal_filter_lossy          412          14502569 ns/op
+blue_purple_pink_large_simple_filter_lossy          418          14248709 ns/op
+blue_purple_pink_lossless                           219          27314321 ns/op
+blue_purple_pink_lossy                             5346           1113283 ns/op
+gopher_doc_1bpp_lossless                          17316            346903 ns/op
+gopher_doc_2bpp_lossless                           9741            598515 ns/op
+gopher_doc_4bpp_lossless                           7383            806527 ns/op
+gopher_doc_8bpp_lossless                           3583           1662437 ns/op
+tux_lossless                                         43         133292642 ns/op
+video_001_lossy                                    4887           1216572 ns/op
+video_001                                          4927           1217377 ns/op
+yellow_rose_lossless                                 37         158455941 ns/op
+yellow_rose_lossy_with_alpha                        552          10813153 ns/op
+yellow_rose_lossy                                   912           6583352 ns/op

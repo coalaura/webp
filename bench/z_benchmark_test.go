@@ -11,7 +11,9 @@ package webp_bench
 
 import (
 	"bytes"
+	"image"
 	"os"
+	"strings"
 	"testing"
 
 	coalaura_webp "github.com/coalaura/webp"
@@ -24,6 +26,26 @@ func tbLoadData(tb testing.TB, filename string) []byte {
 		tb.Fatal(err)
 	}
 	return data
+}
+
+func tbLoadImage(tb testing.TB, filename string) image.Image {
+	data := tbLoadData(tb, filename)
+	m, err := x_image_webp.Decode(bytes.NewReader(data))
+	if err != nil {
+		tb.Fatal(err)
+	}
+	return m
+}
+
+func encodeOptionsForFilename(filename string, useThreads bool) *coalaura_webp.Options {
+	opt := &coalaura_webp.Options{
+		Lossless:     strings.Contains(filename, "lossless"),
+		Quality:      coalaura_webp.DefaultQuality,
+		Method:       coalaura_webp.DefaultMethod,
+		AlphaQuality: coalaura_webp.DefaultAlphaQuality,
+		UseThreads:   useThreads,
+	}
+	return opt
 }
 
 func BenchmarkDecode_1_webp_a_coalaura_webp(b *testing.B) {
@@ -59,6 +81,32 @@ func BenchmarkDecode_1_webp_a_coalaura_webp_threaded(b *testing.B) {
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_1_webp_a_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "1_webp_a.webp")
+	opt := encodeOptionsForFilename("1_webp_a.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_1_webp_a_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "1_webp_a.webp")
+	opt := encodeOptionsForFilename("1_webp_a.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -98,6 +146,32 @@ func BenchmarkDecode_1_webp_ll_coalaura_webp_threaded(b *testing.B) {
 	}
 }
 
+func BenchmarkEncode_1_webp_ll_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "1_webp_ll.webp")
+	opt := encodeOptionsForFilename("1_webp_ll.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_1_webp_ll_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "1_webp_ll.webp")
+	opt := encodeOptionsForFilename("1_webp_ll.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_2_webp_a_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "2_webp_a.webp")
 	b.ResetTimer()
@@ -131,6 +205,32 @@ func BenchmarkDecode_2_webp_a_coalaura_webp_threaded(b *testing.B) {
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_2_webp_a_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "2_webp_a.webp")
+	opt := encodeOptionsForFilename("2_webp_a.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_2_webp_a_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "2_webp_a.webp")
+	opt := encodeOptionsForFilename("2_webp_a.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -170,6 +270,32 @@ func BenchmarkDecode_2_webp_ll_coalaura_webp_threaded(b *testing.B) {
 	}
 }
 
+func BenchmarkEncode_2_webp_ll_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "2_webp_ll.webp")
+	opt := encodeOptionsForFilename("2_webp_ll.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_2_webp_ll_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "2_webp_ll.webp")
+	opt := encodeOptionsForFilename("2_webp_ll.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_3_webp_a_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "3_webp_a.webp")
 	b.ResetTimer()
@@ -203,6 +329,32 @@ func BenchmarkDecode_3_webp_a_coalaura_webp_threaded(b *testing.B) {
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_3_webp_a_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "3_webp_a.webp")
+	opt := encodeOptionsForFilename("3_webp_a.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_3_webp_a_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "3_webp_a.webp")
+	opt := encodeOptionsForFilename("3_webp_a.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -242,6 +394,32 @@ func BenchmarkDecode_3_webp_ll_coalaura_webp_threaded(b *testing.B) {
 	}
 }
 
+func BenchmarkEncode_3_webp_ll_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "3_webp_ll.webp")
+	opt := encodeOptionsForFilename("3_webp_ll.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_3_webp_ll_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "3_webp_ll.webp")
+	opt := encodeOptionsForFilename("3_webp_ll.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_4_webp_a_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "4_webp_a.webp")
 	b.ResetTimer()
@@ -275,6 +453,32 @@ func BenchmarkDecode_4_webp_a_coalaura_webp_threaded(b *testing.B) {
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_4_webp_a_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "4_webp_a.webp")
+	opt := encodeOptionsForFilename("4_webp_a.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_4_webp_a_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "4_webp_a.webp")
+	opt := encodeOptionsForFilename("4_webp_a.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -314,6 +518,32 @@ func BenchmarkDecode_4_webp_ll_coalaura_webp_threaded(b *testing.B) {
 	}
 }
 
+func BenchmarkEncode_4_webp_ll_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "4_webp_ll.webp")
+	opt := encodeOptionsForFilename("4_webp_ll.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_4_webp_ll_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "4_webp_ll.webp")
+	opt := encodeOptionsForFilename("4_webp_ll.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_5_webp_a_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "5_webp_a.webp")
 	b.ResetTimer()
@@ -347,6 +577,32 @@ func BenchmarkDecode_5_webp_a_coalaura_webp_threaded(b *testing.B) {
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_5_webp_a_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "5_webp_a.webp")
+	opt := encodeOptionsForFilename("5_webp_a.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_5_webp_a_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "5_webp_a.webp")
+	opt := encodeOptionsForFilename("5_webp_a.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -386,6 +642,32 @@ func BenchmarkDecode_5_webp_ll_coalaura_webp_threaded(b *testing.B) {
 	}
 }
 
+func BenchmarkEncode_5_webp_ll_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "5_webp_ll.webp")
+	opt := encodeOptionsForFilename("5_webp_ll.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_5_webp_ll_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "5_webp_ll.webp")
+	opt := encodeOptionsForFilename("5_webp_ll.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_blue_purple_pink_large_lossless_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "blue-purple-pink-large.lossless.webp")
 	b.ResetTimer()
@@ -419,6 +701,32 @@ func BenchmarkDecode_blue_purple_pink_large_lossless_coalaura_webp_threaded(b *t
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_blue_purple_pink_large_lossless_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink-large.lossless.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink-large.lossless.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_blue_purple_pink_large_lossless_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink-large.lossless.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink-large.lossless.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -458,6 +766,32 @@ func BenchmarkDecode_blue_purple_pink_large_no_filter_lossy_coalaura_webp_thread
 	}
 }
 
+func BenchmarkEncode_blue_purple_pink_large_no_filter_lossy_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink-large.no-filter.lossy.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink-large.no-filter.lossy.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_blue_purple_pink_large_no_filter_lossy_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink-large.no-filter.lossy.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink-large.no-filter.lossy.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_blue_purple_pink_large_normal_filter_lossy_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "blue-purple-pink-large.normal-filter.lossy.webp")
 	b.ResetTimer()
@@ -491,6 +825,32 @@ func BenchmarkDecode_blue_purple_pink_large_normal_filter_lossy_coalaura_webp_th
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_blue_purple_pink_large_normal_filter_lossy_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink-large.normal-filter.lossy.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink-large.normal-filter.lossy.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_blue_purple_pink_large_normal_filter_lossy_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink-large.normal-filter.lossy.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink-large.normal-filter.lossy.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -530,6 +890,32 @@ func BenchmarkDecode_blue_purple_pink_large_simple_filter_lossy_coalaura_webp_th
 	}
 }
 
+func BenchmarkEncode_blue_purple_pink_large_simple_filter_lossy_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink-large.simple-filter.lossy.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink-large.simple-filter.lossy.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_blue_purple_pink_large_simple_filter_lossy_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink-large.simple-filter.lossy.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink-large.simple-filter.lossy.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_blue_purple_pink_lossless_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "blue-purple-pink.lossless.webp")
 	b.ResetTimer()
@@ -563,6 +949,32 @@ func BenchmarkDecode_blue_purple_pink_lossless_coalaura_webp_threaded(b *testing
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_blue_purple_pink_lossless_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink.lossless.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink.lossless.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_blue_purple_pink_lossless_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink.lossless.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink.lossless.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -602,6 +1014,32 @@ func BenchmarkDecode_blue_purple_pink_lossy_coalaura_webp_threaded(b *testing.B)
 	}
 }
 
+func BenchmarkEncode_blue_purple_pink_lossy_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink.lossy.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink.lossy.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_blue_purple_pink_lossy_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "blue-purple-pink.lossy.webp")
+	opt := encodeOptionsForFilename("blue-purple-pink.lossy.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_gopher_doc_1bpp_lossless_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "gopher-doc.1bpp.lossless.webp")
 	b.ResetTimer()
@@ -635,6 +1073,32 @@ func BenchmarkDecode_gopher_doc_1bpp_lossless_coalaura_webp_threaded(b *testing.
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_gopher_doc_1bpp_lossless_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "gopher-doc.1bpp.lossless.webp")
+	opt := encodeOptionsForFilename("gopher-doc.1bpp.lossless.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_gopher_doc_1bpp_lossless_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "gopher-doc.1bpp.lossless.webp")
+	opt := encodeOptionsForFilename("gopher-doc.1bpp.lossless.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -674,6 +1138,32 @@ func BenchmarkDecode_gopher_doc_2bpp_lossless_coalaura_webp_threaded(b *testing.
 	}
 }
 
+func BenchmarkEncode_gopher_doc_2bpp_lossless_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "gopher-doc.2bpp.lossless.webp")
+	opt := encodeOptionsForFilename("gopher-doc.2bpp.lossless.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_gopher_doc_2bpp_lossless_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "gopher-doc.2bpp.lossless.webp")
+	opt := encodeOptionsForFilename("gopher-doc.2bpp.lossless.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_gopher_doc_4bpp_lossless_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "gopher-doc.4bpp.lossless.webp")
 	b.ResetTimer()
@@ -707,6 +1197,32 @@ func BenchmarkDecode_gopher_doc_4bpp_lossless_coalaura_webp_threaded(b *testing.
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_gopher_doc_4bpp_lossless_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "gopher-doc.4bpp.lossless.webp")
+	opt := encodeOptionsForFilename("gopher-doc.4bpp.lossless.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_gopher_doc_4bpp_lossless_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "gopher-doc.4bpp.lossless.webp")
+	opt := encodeOptionsForFilename("gopher-doc.4bpp.lossless.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -746,6 +1262,32 @@ func BenchmarkDecode_gopher_doc_8bpp_lossless_coalaura_webp_threaded(b *testing.
 	}
 }
 
+func BenchmarkEncode_gopher_doc_8bpp_lossless_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "gopher-doc.8bpp.lossless.webp")
+	opt := encodeOptionsForFilename("gopher-doc.8bpp.lossless.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_gopher_doc_8bpp_lossless_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "gopher-doc.8bpp.lossless.webp")
+	opt := encodeOptionsForFilename("gopher-doc.8bpp.lossless.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_photo_lossy_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "photo.lossy.webp")
 	b.ResetTimer()
@@ -779,6 +1321,32 @@ func BenchmarkDecode_photo_lossy_coalaura_webp_threaded(b *testing.B) {
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_photo_lossy_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "photo.lossy.webp")
+	opt := encodeOptionsForFilename("photo.lossy.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_photo_lossy_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "photo.lossy.webp")
+	opt := encodeOptionsForFilename("photo.lossy.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -818,6 +1386,32 @@ func BenchmarkDecode_tux_lossless_coalaura_webp_threaded(b *testing.B) {
 	}
 }
 
+func BenchmarkEncode_tux_lossless_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "tux.lossless.webp")
+	opt := encodeOptionsForFilename("tux.lossless.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_tux_lossless_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "tux.lossless.webp")
+	opt := encodeOptionsForFilename("tux.lossless.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_video_001_lossy_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "video-001.lossy.webp")
 	b.ResetTimer()
@@ -851,6 +1445,32 @@ func BenchmarkDecode_video_001_lossy_coalaura_webp_threaded(b *testing.B) {
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_video_001_lossy_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "video-001.lossy.webp")
+	opt := encodeOptionsForFilename("video-001.lossy.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_video_001_lossy_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "video-001.lossy.webp")
+	opt := encodeOptionsForFilename("video-001.lossy.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -890,6 +1510,32 @@ func BenchmarkDecode_video_001_coalaura_webp_threaded(b *testing.B) {
 	}
 }
 
+func BenchmarkEncode_video_001_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "video-001.webp")
+	opt := encodeOptionsForFilename("video-001.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_video_001_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "video-001.webp")
+	opt := encodeOptionsForFilename("video-001.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_yellow_rose_lossless_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "yellow_rose.lossless.webp")
 	b.ResetTimer()
@@ -923,6 +1569,32 @@ func BenchmarkDecode_yellow_rose_lossless_coalaura_webp_threaded(b *testing.B) {
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_yellow_rose_lossless_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "yellow_rose.lossless.webp")
+	opt := encodeOptionsForFilename("yellow_rose.lossless.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_yellow_rose_lossless_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "yellow_rose.lossless.webp")
+	opt := encodeOptionsForFilename("yellow_rose.lossless.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }
 
@@ -962,6 +1634,32 @@ func BenchmarkDecode_yellow_rose_lossy_with_alpha_coalaura_webp_threaded(b *test
 	}
 }
 
+func BenchmarkEncode_yellow_rose_lossy_with_alpha_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "yellow_rose.lossy-with-alpha.webp")
+	opt := encodeOptionsForFilename("yellow_rose.lossy-with-alpha.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_yellow_rose_lossy_with_alpha_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "yellow_rose.lossy-with-alpha.webp")
+	opt := encodeOptionsForFilename("yellow_rose.lossy-with-alpha.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkDecode_yellow_rose_lossy_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "yellow_rose.lossy.webp")
 	b.ResetTimer()
@@ -995,5 +1693,31 @@ func BenchmarkDecode_yellow_rose_lossy_coalaura_webp_threaded(b *testing.B) {
 			b.Fatal(err)
 		}
 		_ = m
+	}
+}
+
+func BenchmarkEncode_yellow_rose_lossy_coalaura_webp(b *testing.B) {
+	img := tbLoadImage(b, "yellow_rose.lossy.webp")
+	opt := encodeOptionsForFilename("yellow_rose.lossy.webp", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_yellow_rose_lossy_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "yellow_rose.lossy.webp")
+	opt := encodeOptionsForFilename("yellow_rose.lossy.webp", true)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
 	}
 }

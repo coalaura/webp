@@ -1,7 +1,15 @@
 Benchmark
 =========
 
-![](benchmark_result.png)
+Decode
+------
+
+![](benchmark_decode.png)
+
+Encode
+------
+
+![](benchmark_encode.png)
 
 
 ```
