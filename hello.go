@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// GetInfo
-	if width, height, _, err = webp.GetInfo(data); err != nil {
+	if width, height, _, _, _, err = webp.GetInfo(data); err != nil {
 		log.Println(err)
 	}
 	fmt.Printf("width = %d, height = %d\n", width, height)
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	// Decode webp
-	m, err := webp.Decode(bytes.NewReader(data))
+	m, err := webp.Decode(bytes.NewReader(data), nil)
 	if err != nil {
 		log.Println(err)
 	}

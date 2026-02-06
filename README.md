@@ -85,7 +85,7 @@ func main() {
 	}
 
 	// Decode webp
-	m, err := webp.Decode(bytes.NewReader(data))
+	m, err := webp.Decode(bytes.NewReader(data), nil)
 	if err != nil {
 		log.Println(err)
 	}
@@ -105,7 +105,7 @@ func main() {
 Decode and Encode as RGB format:
 
 ```Go
-m, err := webp.DecodeRGB(data)
+m, err := webp.DecodeRGB(data, nil)
 if err != nil {
 	log.Fatal(err)
 }

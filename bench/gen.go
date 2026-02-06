@@ -116,13 +116,13 @@ func tbLoadImage(tb testing.TB, filename string) image.Image {
 	return m
 }
 
-func encodeOptionsForFilename(filename string) *coalaura_webp.Options {
+func encodeOptionsForFilename(filename string, useThreads bool) *coalaura_webp.Options {
 	opt := &coalaura_webp.Options{
 		Lossless:     strings.Contains(filename, "lossless"),
 		Quality:      coalaura_webp.DefaultQuality,
 		Method:       coalaura_webp.DefaultMethod,
 		AlphaQuality: coalaura_webp.DefaultAlphaQuality,
-		UseThreads:   true,
+		UseThreads:   useThreads,
 	}
 	return opt
 }
@@ -136,7 +136,7 @@ func BenchmarkDecode_{{.goodBaseName}}_coalaura_webp(b *testing.B) {
 	data := tbLoadData(b, "{{.filename}}")
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err := coalaura_webp.Decode(bytes.NewReader(data))
+		m, err := coalaura_webp.Decode(bytes.NewReader(data), nil)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -156,9 +156,34 @@ func BenchmarkDecode_{{.goodBaseName}}_x_image_webp(b *testing.B) {
 	}
 }
 
+func BenchmarkDecode_{{.goodBaseName}}_coalaura_webp_threaded(b *testing.B) {
+	data := tbLoadData(b, "{{.filename}}")
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		m, err := coalaura_webp.Decode(bytes.NewReader(data), &coalaura_webp.DecodeOptions{UseThreads: true})
+		if err != nil {
+			b.Fatal(err)
+		}
+		_ = m
+	}
+}
+
 func BenchmarkEncode_{{.goodBaseName}}_coalaura_webp(b *testing.B) {
 	img := tbLoadImage(b, "{{.filename}}")
-	opt := encodeOptionsForFilename("{{.filename}}")
+	opt := encodeOptionsForFilename("{{.filename}}", false)
+	var buf bytes.Buffer
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		if err := coalaura_webp.Encode(&buf, img, opt); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkEncode_{{.goodBaseName}}_coalaura_webp_threaded(b *testing.B) {
+	img := tbLoadImage(b, "{{.filename}}")
+	opt := encodeOptionsForFilename("{{.filename}}", true)
 	var buf bytes.Buffer
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

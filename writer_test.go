@@ -86,7 +86,7 @@ func TestEncode(t *testing.T) {
 			t.Fatalf("%d: %v", i, err)
 		}
 
-		img1, err := Decode(buf)
+		img1, err := Decode(buf, nil)
 		if err != nil {
 			t.Fatalf("%d: %v", i, err)
 		}

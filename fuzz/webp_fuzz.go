@@ -19,7 +19,7 @@ func Fuzz(data []byte) int {
 	if cfg.Width*cfg.Height > 1e6 {
 		return 0
 	}
-	if _, err := webp.Decode(bytes.NewReader(data)); err != nil {
+	if _, err := webp.Decode(bytes.NewReader(data), nil); err != nil {
 		return 0
 	}
 	return 1

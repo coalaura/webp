@@ -29,7 +29,7 @@ func BenchmarkDecodeGray(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err := DecodeGray(data)
+		m, err := DecodeGray(data, nil)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -45,7 +45,7 @@ func BenchmarkDecodeRGB(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err := DecodeRGB(data)
+		m, err := DecodeRGB(data, nil)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -61,7 +61,7 @@ func BenchmarkDecodeRGBA(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err := DecodeRGBA(data)
+		m, err := DecodeRGBA(data, nil)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -77,7 +77,7 @@ func BenchmarkDecodeGrayToSize(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err := DecodeGrayToSize(data, 32, 32)
+		m, err := DecodeGrayToSize(data, 32, 32, nil)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -93,7 +93,7 @@ func BenchmarkDecodeRGBToSize(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err := DecodeRGBToSize(data, 32, 32)
+		m, err := DecodeRGBToSize(data, 32, 32, nil)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -109,7 +109,7 @@ func BenchmarkDecodeRGBAToSize(b *testing.B) {
 	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		m, err := DecodeRGBAToSize(data, 32, 32)
+		m, err := DecodeRGBAToSize(data, 32, 32, nil)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -133,7 +133,7 @@ func BenchmarkEncodeAndDecode(b *testing.B) {
 		if err = Encode(&buf, img, nil); err != nil {
 			b.Fatal(err)
 		}
-		if _, err = Decode(&buf); err != nil {
+		if _, err = Decode(&buf, nil); err != nil {
 			b.Fatal(err)
 		}
 	}

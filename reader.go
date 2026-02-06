@@ -99,7 +99,7 @@ func Load(name string) (m image.Image, err error) {
 	if _, err = f.Read(data); err != nil {
 		return nil, err
 	}
-	if m, err = DecodeRGBA(data); err != nil {
+	if m, err = DecodeRGBA(data, nil); err != nil {
 		return
 	}
 	return
@@ -147,11 +147,8 @@ func DecodeConfig(r io.Reader) (config image.Config, err error) {
 }
 
 // Decode reads a WEBP image from r and returns it as an image.Image.
-func Decode(r io.Reader) (m image.Image, err error) {
-	return DecodeWithOptions(r, nil)
-}
-
-func DecodeWithOptions(r io.Reader, opt *DecodeOptions) (m image.Image, err error) {
+// If opt is nil, defaults are used.
+func Decode(r io.Reader, opt *DecodeOptions) (m image.Image, err error) {
 	data, release, err := readAllPooled(r)
 	if err != nil {
 		return
@@ -159,12 +156,16 @@ func DecodeWithOptions(r io.Reader, opt *DecodeOptions) (m image.Image, err erro
 	if release != nil {
 		defer release()
 	}
-	if m, err = DecodeRGBAWithOptions(data, opt); err != nil {
+	if m, err = DecodeRGBA(data, opt); err != nil {
 		return
 	}
 	return
 }
 
+func decodeImage(r io.Reader) (m image.Image, err error) {
+	return Decode(r, nil)
+}
+
 func init() {
-	image.RegisterFormat("webp", "RIFF????WEBPVP8", Decode, DecodeConfig)
+	image.RegisterFormat("webp", "RIFF????WEBPVP8", decodeImage, DecodeConfig)
 }

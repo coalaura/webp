@@ -22,11 +22,7 @@ func GetInfo(data []byte) (width, height int, hasAlpha bool, hasAnimation bool, 
 	return webpGetInfo(data)
 }
 
-func DecodeGray(data []byte) (m *image.Gray, err error) {
-	return DecodeGrayWithOptions(data, nil)
-}
-
-func DecodeGrayWithOptions(data []byte, opt *DecodeOptions) (m *image.Gray, err error) {
+func DecodeGray(data []byte, opt *DecodeOptions) (m *image.Gray, err error) {
 	pix, w, h, err := webpDecodeGray(data)
 	if err != nil {
 		return
@@ -39,15 +35,8 @@ func DecodeGrayWithOptions(data []byte, opt *DecodeOptions) (m *image.Gray, err 
 	return
 }
 
-func DecodeRGB(data []byte) (m *RGBImage, err error) {
-	return DecodeRGBWithOptions(data, nil)
-}
-
-func DecodeRGBWithOptions(data []byte, opt *DecodeOptions) (m *RGBImage, err error) {
-	useThreads := true
-	if opt != nil {
-		useThreads = opt.UseThreads
-	}
+func DecodeRGB(data []byte, opt *DecodeOptions) (m *RGBImage, err error) {
+	useThreads := useDecodeThreads(opt)
 
 	pix, w, h, err := webpDecodeRGB(data, useThreads)
 	if err != nil {
@@ -61,15 +50,8 @@ func DecodeRGBWithOptions(data []byte, opt *DecodeOptions) (m *RGBImage, err err
 	return
 }
 
-func DecodeRGBA(data []byte) (m *image.RGBA, err error) {
-	return DecodeRGBAWithOptions(data, nil)
-}
-
-func DecodeRGBAWithOptions(data []byte, opt *DecodeOptions) (m *image.RGBA, err error) {
-	useThreads := true
-	if opt != nil {
-		useThreads = opt.UseThreads
-	}
+func DecodeRGBA(data []byte, opt *DecodeOptions) (m *image.RGBA, err error) {
+	useThreads := useDecodeThreads(opt)
 
 	pix, w, h, err := webpDecodeRGBA(data, useThreads)
 	if err != nil {
@@ -86,12 +68,8 @@ func DecodeRGBAWithOptions(data []byte, opt *DecodeOptions) (m *image.RGBA, err 
 // DecodeGrayToSize decodes a Gray image scaled to the given dimensions. For
 // large images, the DecodeXXXToSize methods are significantly faster and
 // require less memory compared to decoding a full-size image and then resizing it.
-func DecodeGrayToSize(data []byte, width, height int) (m *image.Gray, err error) {
-	return DecodeGrayToSizeWithOptions(data, width, height, nil)
-}
-
-func DecodeGrayToSizeWithOptions(data []byte, width, height int, opt *DecodeOptions) (m *image.Gray, err error) {
-	pix, err := webpDecodeGrayToSize(data, width, height, opt.UseThreads)
+func DecodeGrayToSize(data []byte, width, height int, opt *DecodeOptions) (m *image.Gray, err error) {
+	pix, err := webpDecodeGrayToSize(data, width, height, useDecodeThreads(opt))
 	if err != nil {
 		return
 	}
@@ -104,12 +82,8 @@ func DecodeGrayToSizeWithOptions(data []byte, width, height int, opt *DecodeOpti
 }
 
 // DecodeRGBToSize decodes an RGB image scaled to the given dimensions.
-func DecodeRGBToSize(data []byte, width, height int) (m *RGBImage, err error) {
-	return DecodeRGBToSizeWithOptions(data, width, height, nil)
-}
-
-func DecodeRGBToSizeWithOptions(data []byte, width, height int, opt *DecodeOptions) (m *RGBImage, err error) {
-	pix, err := webpDecodeRGBToSize(data, width, height, opt.UseThreads)
+func DecodeRGBToSize(data []byte, width, height int, opt *DecodeOptions) (m *RGBImage, err error) {
+	pix, err := webpDecodeRGBToSize(data, width, height, useDecodeThreads(opt))
 	if err != nil {
 		return
 	}
@@ -122,12 +96,8 @@ func DecodeRGBToSizeWithOptions(data []byte, width, height int, opt *DecodeOptio
 }
 
 // DecodeRGBAToSize decodes a Gray image scaled to the given dimensions.
-func DecodeRGBAToSize(data []byte, width, height int) (m *image.RGBA, err error) {
-	return DecodeRGBAToSizeWithOptions(data, width, height, nil)
-}
-
-func DecodeRGBAToSizeWithOptions(data []byte, width, height int, opt *DecodeOptions) (m *image.RGBA, err error) {
-	pix, err := webpDecodeRGBAToSize(data, width, height, opt.UseThreads)
+func DecodeRGBAToSize(data []byte, width, height int, opt *DecodeOptions) (m *image.RGBA, err error) {
+	pix, err := webpDecodeRGBAToSize(data, width, height, useDecodeThreads(opt))
 	if err != nil {
 		return
 	}
@@ -212,6 +182,13 @@ func encodeExactLosslessRGBA(m image.Image, method int, targetSize int, alphaQua
 	p := toRGBAImage(m)
 	data, err = webpEncodeLosslessRGBA(1, p.Pix, p.Rect.Dx(), p.Rect.Dy(), p.Stride, method, targetSize, alphaQuality, boolToInt(autoFilter), boolToInt(useThreads))
 	return
+}
+
+func useDecodeThreads(opt *DecodeOptions) bool {
+	if opt == nil {
+		return true
+	}
+	return opt.UseThreads
 }
 
 func boolToInt(v bool) int {

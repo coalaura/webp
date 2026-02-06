@@ -30,7 +30,7 @@ func TestEncodeTargetSizeOption(t *testing.T) {
 	if buf.Len() == 0 {
 		t.Fatal("expected encoded data")
 	}
-	if _, err := Decode(bytes.NewReader(buf.Bytes())); err != nil {
+	if _, err := Decode(bytes.NewReader(buf.Bytes()), nil); err != nil {
 		t.Fatalf("decode failed: %v", err)
 	}
 }
@@ -87,7 +87,7 @@ func TestEncodeAutoFilterOption(t *testing.T) {
 	if buf.Len() == 0 {
 		t.Fatal("expected encoded data")
 	}
-	if _, err := Decode(bytes.NewReader(buf.Bytes())); err != nil {
+	if _, err := Decode(bytes.NewReader(buf.Bytes()), nil); err != nil {
 		t.Fatalf("decode failed: %v", err)
 	}
 }

@@ -19,7 +19,7 @@ func TestDecodeAll(t *testing.T) {
 		data, err := os.ReadFile(name)
 		tAssertNil(t, err)
 
-		anim, err := DecodeAll(bytes.NewReader(data))
+		anim, err := DecodeAll(bytes.NewReader(data), nil)
 		tAssertNil(t, err)
 		tAssert(t, anim != nil)
 		tAssert(t, len(anim.Image) > 1, name)
@@ -42,14 +42,14 @@ func TestEncodeAll(t *testing.T) {
 	data, err := os.ReadFile("./testdata/animated_1.webp")
 	tAssertNil(t, err)
 
-	anim, err := DecodeAll(bytes.NewReader(data))
+	anim, err := DecodeAll(bytes.NewReader(data), nil)
 	tAssertNil(t, err)
 
 	var buf bytes.Buffer
 	err = EncodeAll(&buf, anim, &Options{Lossless: true})
 	tAssertNil(t, err)
 
-	encoded, err := DecodeAll(bytes.NewReader(buf.Bytes()))
+	encoded, err := DecodeAll(bytes.NewReader(buf.Bytes()), nil)
 	tAssertNil(t, err)
 	if encoded == nil {
 		t.Fatalf("DecodeAll returned nil animation")
