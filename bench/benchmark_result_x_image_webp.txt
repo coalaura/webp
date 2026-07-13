@@ -2,32 +2,32 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-# go test -bench=x_image_webp$
+# go test -bench=x_image_webp$ -benchtime=5s
 
 # name, run times, speed, ns/op
-1_webp_a                                              2446       2408596 ns/op
-1_webp_ll                                             2061       2924176 ns/op
-2_webp_a                                              2419       2449051 ns/op
-2_webp_ll                                             2929       2015675 ns/op
-3_webp_a                                               734       8095808 ns/op
-3_webp_ll                                              776       7678282 ns/op
-4_webp_a                                              3067       1909928 ns/op
-4_webp_ll                                             3210       1841231 ns/op
-5_webp_a                                              1248       4773427 ns/op
-5_webp_ll                                             2035       2911319 ns/op
-blue_purple_pink_large_lossless                        883       6775131 ns/op
-blue_purple_pink_large_no_filter_lossy                2268       2642816 ns/op
-blue_purple_pink_large_normal_filter_lossy            1466       4073708 ns/op
-blue_purple_pink_large_simple_filter_lossy            1882       3157113 ns/op
-blue_purple_pink_lossless                            10000        579459 ns/op
-blue_purple_pink_lossy                               35264        170582 ns/op
-gopher_doc_1bpp_lossless                            170840         35967 ns/op
-gopher_doc_2bpp_lossless                            129553         45788 ns/op
-gopher_doc_4bpp_lossless                             96657         61638 ns/op
-gopher_doc_8bpp_lossless                             67269         88821 ns/op
-tux_lossless                                          2684       2178039 ns/op
-video_001_lossy                                      28531        210503 ns/op
-video_001                                            28348        210478 ns/op
-yellow_rose_lossless                                  1989       3023900 ns/op
-yellow_rose_lossy_with_alpha                          2504       2416013 ns/op
-yellow_rose_lossy                                     3150       1885280 ns/op
+1_webp_a_x                                            2838           2103374 ns/op
+1_webp_ll_x                                           2834           2118027 ns/op
+2_webp_a_x                                            2734           2183013 ns/op
+2_webp_ll_x                                           3694           1630803 ns/op
+3_webp_a_x                                             867           6903496 ns/op
+3_webp_ll_x                                           1062           5648137 ns/op
+4_webp_a_x                                            3670           1641429 ns/op
+4_webp_ll_x                                           4268           1404801 ns/op
+5_webp_a_x                                            1491           4023463 ns/op
+5_webp_ll_x                                           2610           2304798 ns/op
+blue_purple_pink_large_lossless_x                     1222           4931514 ns/op
+blue_purple_pink_large_no_filter_lossy_x              2612           2294982 ns/op
+blue_purple_pink_large_normal_filter_lossy_x          1726           3476940 ns/op
+blue_purple_pink_large_simple_filter_lossy_x          2227           2705891 ns/op
+blue_purple_pink_lossless_x                          13690            438365 ns/op
+blue_purple_pink_lossy_x                             37945            157394 ns/op
+gopher_doc_1bpp_lossless_x                          192553             31245 ns/op
+gopher_doc_2bpp_lossless_x                          148959             39753 ns/op
+gopher_doc_4bpp_lossless_x                          116739             51458 ns/op
+gopher_doc_8bpp_lossless_x                           76956             78350 ns/op
+tux_lossless_x                                        3562           1693724 ns/op
+video_001_lossy_x                                    25578            235446 ns/op
+video_001_x                                          25594            235213 ns/op
+yellow_rose_lossless_x                                2830           2136201 ns/op
+yellow_rose_lossy_with_alpha_x                        3008           2004143 ns/op
+yellow_rose_lossy_x                                   3818           1576317 ns/op
