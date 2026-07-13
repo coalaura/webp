@@ -29,7 +29,7 @@ type Config struct {
 // DecodeOptions controls WebP decoding behavior.
 // A nil options value uses defaults.
 type DecodeOptions struct {
-	UseThreads bool            // Enable libwebp multi-threading (default true)
+	UseThreads bool            // Enable libwebp multi-threading (default false)
 	Crop       image.Rectangle // Optional source-space crop rectangle.
 	Width      int             // Optional decoded width; must be paired with Height.
 	Height     int             // Optional decoded height; must be paired with Width.

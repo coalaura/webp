@@ -214,7 +214,7 @@ func encodeExactLosslessRGBA(m image.Image, method int, targetSize int, alphaQua
 
 func useDecodeThreads(opt *DecodeOptions) bool {
 	if opt == nil {
-		return true
+		return false
 	}
 	return opt.UseThreads
 }
