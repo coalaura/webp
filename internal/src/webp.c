@@ -1,4 +1,5 @@
 // Copyright 2014 <chaishushan{AT}gmail.com>. All rights reserved.
+// Copyright 2026 github.com/coalaura. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -11,6 +12,27 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+
+extern int goWebPWrite(const uint8_t* data, size_t data_size, void* custom_ptr);
+
+static void webpSetDecodeTransform(
+	WebPDecoderConfig* config,
+	int crop_left, int crop_top, int crop_width, int crop_height,
+	int scaled_width, int scaled_height
+) {
+	if (crop_width > 0 && crop_height > 0) {
+		config->options.use_cropping = 1;
+		config->options.crop_left = crop_left;
+		config->options.crop_top = crop_top;
+		config->options.crop_width = crop_width;
+		config->options.crop_height = crop_height;
+	}
+	if (scaled_width > 0 && scaled_height > 0) {
+		config->options.use_scaling = 1;
+		config->options.scaled_width = scaled_width;
+		config->options.scaled_height = scaled_height;
+	}
+}
 
 int webpGetInfo(
 	const uint8_t* data, size_t data_size,
@@ -88,7 +110,7 @@ uint8_t* webpDecodeRGBA(
 	return WebPDecodeRGBA(data, data_size, width, height);
 }
 
-int webpDecodeRGBInto(const uint8_t* data, size_t data_size,
+int webpDecodeRGBIntoDefault(const uint8_t* data, size_t data_size,
 	int width, int height, int outStride, uint8_t* out, int use_threads
 ) {
 	WebPDecoderConfig config;
@@ -106,7 +128,7 @@ int webpDecodeRGBInto(const uint8_t* data, size_t data_size,
 	return WebPDecode(data, data_size, &config);
 }
 
-int webpDecodeRGBAInto(const uint8_t* data, size_t data_size,
+int webpDecodeRGBAIntoDefault(const uint8_t* data, size_t data_size,
 	int width, int height, int outStride, uint8_t* out, int use_threads
 ) {
 	WebPDecoderConfig config;
@@ -124,20 +146,59 @@ int webpDecodeRGBAInto(const uint8_t* data, size_t data_size,
 	return WebPDecode(data, data_size, &config);
 }
 
+int webpDecodeRGBInto(const uint8_t* data, size_t data_size,
+	int width, int height, int outStride, uint8_t* out, int use_threads,
+	int crop_left, int crop_top, int crop_width, int crop_height,
+	int scaled_width, int scaled_height
+) {
+	WebPDecoderConfig config;
+	if (!WebPInitDecoderConfig(&config)) {
+		return -1;
+	}
+
+	config.options.use_threads = use_threads;
+	webpSetDecodeTransform(&config, crop_left, crop_top, crop_width, crop_height, scaled_width, scaled_height);
+	config.output.colorspace = MODE_RGB;
+	config.output.u.RGBA.rgba = out;
+	config.output.u.RGBA.stride = outStride;
+	config.output.u.RGBA.size = outStride * height;
+	config.output.is_external_memory = 1;
+
+	return WebPDecode(data, data_size, &config);
+}
+
+int webpDecodeRGBAInto(const uint8_t* data, size_t data_size,
+	int width, int height, int outStride, uint8_t* out, int use_threads,
+	int crop_left, int crop_top, int crop_width, int crop_height,
+	int scaled_width, int scaled_height
+) {
+	WebPDecoderConfig config;
+	if (!WebPInitDecoderConfig(&config)) {
+		return -1;
+	}
+
+	config.options.use_threads = use_threads;
+	webpSetDecodeTransform(&config, crop_left, crop_top, crop_width, crop_height, scaled_width, scaled_height);
+	config.output.colorspace = MODE_RGBA;
+	config.output.u.RGBA.rgba = out;
+	config.output.u.RGBA.stride = outStride;
+	config.output.u.RGBA.size = outStride * height;
+	config.output.is_external_memory = 1;
+
+	return WebPDecode(data, data_size, &config);
+}
+
 int webpDecodeGrayToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out, int use_threads
+	int width, int height, int outStride, uint8_t* out, int use_threads,
+	int crop_left, int crop_top, int crop_width, int crop_height
 ) {
 	WebPDecoderConfig config;
 	if(!WebPInitDecoderConfig(&config)) {
 		return -1;
 	}
 
-	config.options.bypass_filtering = 1;
-	config.options.no_fancy_upsampling = 1;
 	config.options.use_threads = use_threads;
-	config.options.use_scaling = 1;
-	config.options.scaled_width = width;
-	config.options.scaled_height = height;
+	webpSetDecodeTransform(&config, crop_left, crop_top, crop_width, crop_height, width, height);
 	config.output.colorspace = MODE_YUV;
 
 	int status = WebPDecode(data, data_size, &config);
@@ -161,19 +222,16 @@ int webpDecodeGrayToSize(const uint8_t* data, size_t data_size,
 }
 
 int webpDecodeRGBToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out, int use_threads
+	int width, int height, int outStride, uint8_t* out, int use_threads,
+	int crop_left, int crop_top, int crop_width, int crop_height
 ) {
 	WebPDecoderConfig config;
 	if(!WebPInitDecoderConfig(&config)) {
 		return -1;
 	}
 
-	config.options.bypass_filtering = 1;
-	config.options.no_fancy_upsampling = 1;
 	config.options.use_threads = use_threads;
-	config.options.use_scaling = 1;
-	config.options.scaled_width = width;
-	config.options.scaled_height = height;
+	webpSetDecodeTransform(&config, crop_left, crop_top, crop_width, crop_height, width, height);
 	config.output.colorspace = MODE_RGB;
 	config.output.u.RGBA.rgba = out;
 	config.output.u.RGBA.stride = outStride;
@@ -184,19 +242,16 @@ int webpDecodeRGBToSize(const uint8_t* data, size_t data_size,
 }
 
 int webpDecodeRGBAToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out, int use_threads
+	int width, int height, int outStride, uint8_t* out, int use_threads,
+	int crop_left, int crop_top, int crop_width, int crop_height
 ) {
 	WebPDecoderConfig config;
 	if(!WebPInitDecoderConfig(&config)) {
 		return -1;
 	}
 
-	config.options.bypass_filtering = 1;
-	config.options.no_fancy_upsampling = 1;
 	config.options.use_threads = use_threads;
-	config.options.use_scaling = 1;
-	config.options.scaled_width = width;
-	config.options.scaled_height = height;
+	webpSetDecodeTransform(&config, crop_left, crop_top, crop_width, crop_height, width, height);
 	config.output.colorspace = MODE_RGBA;
 	config.output.u.RGBA.rgba = out;
 	config.output.u.RGBA.stride = outStride;
@@ -492,6 +547,74 @@ uint8_t* webpEncodeLosslessRGBA(
 	return wrt.mem;
 }
 
+static int webpGoWriter(const uint8_t* data, size_t data_size, const WebPPicture* picture) {
+	return goWebPWrite(data, data_size, picture->custom_ptr);
+}
+
+int webpEncodeToWriter(
+	const uint8_t* pixels, int width, int height, int stride, int mode,
+	int lossless, int exact, int lossless_level, float quality_factor,
+	int method, int target_size, int alpha_quality, int autofilter,
+	int thread_level, void* custom_ptr
+) {
+	WebPConfig config;
+	WebPPicture pic;
+	int ok;
+
+	if (lossless) {
+		if (lossless_level >= 0) {
+			if (!WebPConfigLosslessPreset(&config, lossless_level)) return 0;
+		} else if (!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, 100)) {
+			return 0;
+		}
+		config.lossless = 1;
+	} else if (!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, quality_factor)) {
+		return 0;
+	}
+	config.exact = exact;
+	config.method = method;
+	config.target_size = target_size;
+	config.alpha_quality = alpha_quality;
+	config.autofilter = autofilter;
+	config.thread_level = thread_level;
+	if (!WebPValidateConfig(&config) || !WebPPictureInit(&pic)) return 0;
+	pic.width = width;
+	pic.height = height;
+	pic.use_argb = lossless;
+	pic.writer = webpGoWriter;
+	pic.custom_ptr = custom_ptr;
+
+	if (mode == 1) {
+		if (!WebPPictureAlloc(&pic)) {
+			WebPPictureFree(&pic);
+			return 0;
+		}
+		if (lossless) {
+			for (int y = 0; y < height; ++y) {
+				const uint8_t* src = pixels + y * stride;
+				uint32_t* dst = pic.argb + y * pic.argb_stride;
+				for (int x = 0; x < width; ++x) {
+					const uint32_t value = src[x];
+					dst[x] = 0xff000000u | (value << 16) | (value << 8) | value;
+				}
+			}
+		} else {
+			for (int y = 0; y < height; ++y) memcpy(pic.y + y * pic.y_stride, pixels + y * stride, width);
+			for (int y = 0; y < (height + 1) / 2; ++y) {
+				memset(pic.u + y * pic.uv_stride, 128, (width + 1) / 2);
+				memset(pic.v + y * pic.uv_stride, 128, (width + 1) / 2);
+			}
+		}
+		ok = WebPEncode(&config, &pic);
+	} else if (mode == 3) {
+		ok = WebPPictureImportRGB(&pic, pixels, stride) && WebPEncode(&config, &pic);
+	} else {
+		ok = WebPPictureImportRGBA(&pic, pixels, stride) && WebPEncode(&config, &pic);
+	}
+	WebPPictureFree(&pic);
+	return ok;
+}
+
 char* webpGetEXIF(const uint8_t* data, size_t data_size, size_t* metadata_size) {
 	char* metadata = NULL;
 	WebPData webp_data = {data, data_size};
@@ -554,6 +677,56 @@ char* webpGetXMP(const uint8_t* data, size_t data_size, size_t* metadata_size) {
 	}
 	WebPDemuxDelete(demux);
 	return metadata;
+}
+
+static const char* webpMetadataTag(int type) {
+	switch (type) {
+		case 1: return "EXIF";
+		case 2: return "ICCP";
+		case 3: return "XMP ";
+		default: return NULL;
+	}
+}
+
+int webpGetMetadataSize(const uint8_t* data, size_t data_size, int type, size_t* metadata_size) {
+	const char* tag = webpMetadataTag(type);
+	WebPData webp_data = {data, data_size};
+	WebPDemuxer* demux;
+	WebPChunkIterator it;
+	if (metadata_size == NULL || tag == NULL) return 0;
+	*metadata_size = 0;
+	demux = WebPDemux(&webp_data);
+	if (demux == NULL) return 0;
+	memset(&it, 0, sizeof(it));
+	if (WebPDemuxGetChunk(demux, tag, 1, &it) && it.chunk.bytes != NULL && it.chunk.size > 0) {
+		*metadata_size = it.chunk.size;
+		WebPDemuxReleaseChunkIterator(&it);
+		WebPDemuxDelete(demux);
+		return 1;
+	}
+	WebPDemuxReleaseChunkIterator(&it);
+	WebPDemuxDelete(demux);
+	return 0;
+}
+
+int webpCopyMetadata(const uint8_t* data, size_t data_size, int type, uint8_t* output, size_t output_size) {
+	const char* tag = webpMetadataTag(type);
+	WebPData webp_data = {data, data_size};
+	WebPDemuxer* demux;
+	WebPChunkIterator it;
+	if (tag == NULL || output == NULL) return 0;
+	demux = WebPDemux(&webp_data);
+	if (demux == NULL) return 0;
+	memset(&it, 0, sizeof(it));
+	if (WebPDemuxGetChunk(demux, tag, 1, &it) && it.chunk.bytes != NULL && it.chunk.size == output_size) {
+		memcpy(output, it.chunk.bytes, output_size);
+		WebPDemuxReleaseChunkIterator(&it);
+		WebPDemuxDelete(demux);
+		return 1;
+	}
+	WebPDemuxReleaseChunkIterator(&it);
+	WebPDemuxDelete(demux);
+	return 0;
 }
 
 uint8_t* webpSetEXIF(

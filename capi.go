@@ -1,4 +1,5 @@
 // Copyright 2014 <chaishushan{AT}gmail.com>. All rights reserved.
+// Copyright 2026 github.com/coalaura. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -30,8 +31,19 @@ package webp
 import "C"
 import (
 	"errors"
+	"image"
 	"unsafe"
 )
+
+func copyWebPBytes(ptr unsafe.Pointer, size C.size_t) ([]byte, error) {
+	n, ok := checkedSizeToInt(uint64(size))
+	if !ok || n <= 0 || ptr == nil {
+		return nil, errors.New("webp: invalid native output size")
+	}
+	output := make([]byte, n)
+	copy(output, unsafe.Slice((*byte)(ptr), n))
+	return output, nil
+}
 
 func webpGetInfo(data []byte) (width, height int, hasAlpha bool, hasAnimation bool, format int, err error) {
 	if len(data) == 0 {
@@ -66,15 +78,19 @@ func webpDecodeGray(data []byte) (pix []byte, width, height int, err error) {
 		err = errors.New("webpDecodeGray: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
+	defer C.WebPFree(unsafe.Pointer(cptr))
 
-	pix = make([]byte, int(cw*ch*1))
-	copy(pix, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(pix):len(pix)])
+	_, size, sizeErr := decodeBufferSize(int(cw), int(ch), 1)
+	if sizeErr != nil {
+		return nil, 0, 0, sizeErr
+	}
+	pix = make([]byte, size)
+	copy(pix, unsafe.Slice((*byte)(unsafe.Pointer(cptr)), size))
 	width, height = int(cw), int(ch)
 	return
 }
 
-func webpDecodeRGB(data []byte, useThreads bool) (pix []byte, width, height int, err error) {
+func webpDecodeRGB(data []byte, opt *DecodeOptions) (pix []byte, width, height int, err error) {
 	if len(data) == 0 {
 		err = errors.New("webpDecodeRGB: bad arguments")
 		return
@@ -89,13 +105,42 @@ func webpDecodeRGB(data []byte, useThreads bool) (pix []byte, width, height int,
 		return
 	}
 
-	pix = make([]byte, width*height*3)
-	stride := C.int(3 * width)
-	res := C.webpDecodeRGBInto(
-		(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
-		C.int(width), C.int(height), stride,
-		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useThreads)),
-	)
+	stride, size, sizeErr := decodeBufferSize(width, height, 3)
+	if sizeErr != nil {
+		err = sizeErr
+		return
+	}
+	var res C.int
+	if opt == nil || (opt.Crop == (image.Rectangle{}) && opt.Width == 0 && opt.Height == 0) {
+		pix = make([]byte, size)
+		res = C.webpDecodeRGBIntoDefault(
+			(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
+			C.int(width), C.int(height), C.int(stride),
+			(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useDecodeThreads(opt))),
+		)
+	} else {
+		transform, transformErr := decodeTransformFor(width, height, opt, 0, 0)
+		if transformErr != nil {
+			return nil, 0, 0, transformErr
+		}
+		width, height = transform.width, transform.height
+		stride, size, sizeErr = decodeBufferSize(width, height, 3)
+		if sizeErr != nil {
+			return nil, 0, 0, sizeErr
+		}
+		pix = make([]byte, size)
+		scaledWidth, scaledHeight := 0, 0
+		if opt.Width != 0 {
+			scaledWidth, scaledHeight = width, height
+		}
+		res = C.webpDecodeRGBInto(
+			(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
+			C.int(width), C.int(height), C.int(stride),
+			(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useDecodeThreads(opt))),
+			C.int(transform.cropLeft), C.int(transform.cropTop), C.int(transform.cropWidth), C.int(transform.cropHeight),
+			C.int(scaledWidth), C.int(scaledHeight),
+		)
+	}
 	if res != C.VP8_STATUS_OK {
 		pix = nil
 		err = errors.New("webpDecodeRGB: failed")
@@ -104,7 +149,7 @@ func webpDecodeRGB(data []byte, useThreads bool) (pix []byte, width, height int,
 	return
 }
 
-func webpDecodeRGBA(data []byte, useThreads bool) (pix []byte, width, height int, err error) {
+func webpDecodeRGBA(data []byte, opt *DecodeOptions) (pix []byte, width, height int, err error) {
 	if len(data) == 0 {
 		err = errors.New("webpDecodeRGBA: bad arguments")
 		return
@@ -119,13 +164,42 @@ func webpDecodeRGBA(data []byte, useThreads bool) (pix []byte, width, height int
 		return
 	}
 
-	pix = make([]byte, width*height*4)
-	stride := C.int(4 * width)
-	res := C.webpDecodeRGBAInto(
-		(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
-		C.int(width), C.int(height), stride,
-		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useThreads)),
-	)
+	stride, size, sizeErr := decodeBufferSize(width, height, 4)
+	if sizeErr != nil {
+		err = sizeErr
+		return
+	}
+	var res C.int
+	if opt == nil || (opt.Crop == (image.Rectangle{}) && opt.Width == 0 && opt.Height == 0) {
+		pix = make([]byte, size)
+		res = C.webpDecodeRGBAIntoDefault(
+			(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
+			C.int(width), C.int(height), C.int(stride),
+			(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useDecodeThreads(opt))),
+		)
+	} else {
+		transform, transformErr := decodeTransformFor(width, height, opt, 0, 0)
+		if transformErr != nil {
+			return nil, 0, 0, transformErr
+		}
+		width, height = transform.width, transform.height
+		stride, size, sizeErr = decodeBufferSize(width, height, 4)
+		if sizeErr != nil {
+			return nil, 0, 0, sizeErr
+		}
+		pix = make([]byte, size)
+		scaledWidth, scaledHeight := 0, 0
+		if opt.Width != 0 {
+			scaledWidth, scaledHeight = width, height
+		}
+		res = C.webpDecodeRGBAInto(
+			(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
+			C.int(width), C.int(height), C.int(stride),
+			(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useDecodeThreads(opt))),
+			C.int(transform.cropLeft), C.int(transform.cropTop), C.int(transform.cropWidth), C.int(transform.cropHeight),
+			C.int(scaledWidth), C.int(scaledHeight),
+		)
+	}
 	if res != C.VP8_STATUS_OK {
 		pix = nil
 		err = errors.New("webpDecodeRGBA: failed")
@@ -134,13 +208,29 @@ func webpDecodeRGBA(data []byte, useThreads bool) (pix []byte, width, height int
 	return
 }
 
-func webpDecodeGrayToSize(data []byte, width, height int, useThreads bool) (pix []byte, err error) {
-	pix = make([]byte, int(width*height))
-	stride := C.int(width)
+func webpDecodeGrayToSize(data []byte, width, height int, opt *DecodeOptions) (pix []byte, err error) {
+	if len(data) == 0 {
+		return nil, errors.New("webpDecodeGrayToSize: bad arguments")
+	}
+	sourceWidth, sourceHeight, _, _, _, infoErr := webpGetInfo(data)
+	if infoErr != nil {
+		return nil, infoErr
+	}
+	transform, transformErr := decodeTransformFor(sourceWidth, sourceHeight, opt, width, height)
+	if transformErr != nil {
+		return nil, transformErr
+	}
+	width, height = transform.width, transform.height
+	stride, size, err := decodeBufferSize(width, height, 1)
+	if err != nil {
+		return nil, err
+	}
+	pix = make([]byte, size)
 	res := C.webpDecodeGrayToSize(
 		(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
-		C.int(width), C.int(height), stride,
-		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useThreads)),
+		C.int(width), C.int(height), C.int(stride),
+		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useDecodeThreads(opt))),
+		C.int(transform.cropLeft), C.int(transform.cropTop), C.int(transform.cropWidth), C.int(transform.cropHeight),
 	)
 	if res != C.VP8_STATUS_OK {
 		pix = nil
@@ -149,13 +239,29 @@ func webpDecodeGrayToSize(data []byte, width, height int, useThreads bool) (pix 
 	return
 }
 
-func webpDecodeRGBToSize(data []byte, width, height int, useThreads bool) (pix []byte, err error) {
-	pix = make([]byte, int(3*width*height))
-	stride := C.int(3 * width)
+func webpDecodeRGBToSize(data []byte, width, height int, opt *DecodeOptions) (pix []byte, err error) {
+	if len(data) == 0 {
+		return nil, errors.New("webpDecodeRGBToSize: bad arguments")
+	}
+	sourceWidth, sourceHeight, _, _, _, infoErr := webpGetInfo(data)
+	if infoErr != nil {
+		return nil, infoErr
+	}
+	transform, transformErr := decodeTransformFor(sourceWidth, sourceHeight, opt, width, height)
+	if transformErr != nil {
+		return nil, transformErr
+	}
+	width, height = transform.width, transform.height
+	stride, size, err := decodeBufferSize(width, height, 3)
+	if err != nil {
+		return nil, err
+	}
+	pix = make([]byte, size)
 	res := C.webpDecodeRGBToSize(
 		(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
-		C.int(width), C.int(height), stride,
-		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useThreads)),
+		C.int(width), C.int(height), C.int(stride),
+		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useDecodeThreads(opt))),
+		C.int(transform.cropLeft), C.int(transform.cropTop), C.int(transform.cropWidth), C.int(transform.cropHeight),
 	)
 	if res != C.VP8_STATUS_OK {
 		pix = nil
@@ -164,13 +270,29 @@ func webpDecodeRGBToSize(data []byte, width, height int, useThreads bool) (pix [
 	return
 }
 
-func webpDecodeRGBAToSize(data []byte, width, height int, useThreads bool) (pix []byte, err error) {
-	pix = make([]byte, int(4*width*height))
-	stride := C.int(4 * width)
+func webpDecodeRGBAToSize(data []byte, width, height int, opt *DecodeOptions) (pix []byte, err error) {
+	if len(data) == 0 {
+		return nil, errors.New("webpDecodeRGBAToSize: bad arguments")
+	}
+	sourceWidth, sourceHeight, _, _, _, infoErr := webpGetInfo(data)
+	if infoErr != nil {
+		return nil, infoErr
+	}
+	transform, transformErr := decodeTransformFor(sourceWidth, sourceHeight, opt, width, height)
+	if transformErr != nil {
+		return nil, transformErr
+	}
+	width, height = transform.width, transform.height
+	stride, size, err := decodeBufferSize(width, height, 4)
+	if err != nil {
+		return nil, err
+	}
+	pix = make([]byte, size)
 	res := C.webpDecodeRGBAToSize(
 		(*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)),
-		C.int(width), C.int(height), stride,
-		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useThreads)),
+		C.int(width), C.int(height), C.int(stride),
+		(*C.uint8_t)(unsafe.Pointer(&pix[0])), C.int(boolToInt(useDecodeThreads(opt))),
+		C.int(transform.cropLeft), C.int(transform.cropTop), C.int(transform.cropWidth), C.int(transform.cropHeight),
 	)
 	if res != C.VP8_STATUS_OK {
 		pix = nil
@@ -188,8 +310,11 @@ func webpEncodeGray(pix []byte, width, height, stride int, quality float32, meth
 		err = errors.New("webpEncodeGray: bad arguments")
 		return
 	}
-	if stride < width*1 && len(pix) < height*stride {
+	if !validCInts(method, targetSize, alphaQuality, autoFilter, threadLevel) {
 		err = errors.New("webpEncodeGray: bad arguments")
+		return
+	}
+	if err = validatePackedPixels(pix, width, height, stride, 1); err != nil {
 		return
 	}
 
@@ -204,10 +329,8 @@ func webpEncodeGray(pix []byte, width, height, stride int, quality float32, meth
 		err = errors.New("webpEncodeGray: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	output = make([]byte, int(cptr_size))
-	copy(output, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(output):len(output)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	output, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 
@@ -220,8 +343,11 @@ func webpEncodeRGB(pix []byte, width, height, stride int, quality float32, metho
 		err = errors.New("webpEncodeRGB: bad arguments")
 		return
 	}
-	if stride < width*3 && len(pix) < height*stride {
+	if !validCInts(method, targetSize, alphaQuality, autoFilter, threadLevel) {
 		err = errors.New("webpEncodeRGB: bad arguments")
+		return
+	}
+	if err = validatePackedPixels(pix, width, height, stride, 3); err != nil {
 		return
 	}
 
@@ -236,10 +362,8 @@ func webpEncodeRGB(pix []byte, width, height, stride int, quality float32, metho
 		err = errors.New("webpEncodeRGB: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	output = make([]byte, int(cptr_size))
-	copy(output, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(output):len(output)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	output, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 
@@ -252,8 +376,11 @@ func webpEncodeRGBA(pix []byte, width, height, stride int, quality float32, meth
 		err = errors.New("webpEncodeRGBA: bad arguments")
 		return
 	}
-	if stride < width*4 && len(pix) < height*stride {
+	if !validCInts(method, targetSize, alphaQuality, autoFilter, threadLevel) {
 		err = errors.New("webpEncodeRGBA: bad arguments")
+		return
+	}
+	if err = validatePackedPixels(pix, width, height, stride, 4); err != nil {
 		return
 	}
 
@@ -268,10 +395,8 @@ func webpEncodeRGBA(pix []byte, width, height, stride int, quality float32, meth
 		err = errors.New("webpEncodeRGBA: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	output = make([]byte, int(cptr_size))
-	copy(output, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(output):len(output)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	output, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 
@@ -284,8 +409,11 @@ func webpEncodeLosslessGray(pix []byte, width, height, stride int, method int, t
 		err = errors.New("webpEncodeLosslessGray: bad arguments")
 		return
 	}
-	if stride < width*1 && len(pix) < height*stride {
+	if !validCInts(method, targetSize, alphaQuality, autoFilter, threadLevel) {
 		err = errors.New("webpEncodeLosslessGray: bad arguments")
+		return
+	}
+	if err = validatePackedPixels(pix, width, height, stride, 1); err != nil {
 		return
 	}
 
@@ -300,10 +428,8 @@ func webpEncodeLosslessGray(pix []byte, width, height, stride int, method int, t
 		err = errors.New("webpEncodeLosslessGray: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	output = make([]byte, int(cptr_size))
-	copy(output, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(output):len(output)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	output, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 
@@ -316,8 +442,11 @@ func webpEncodeLosslessRGB(pix []byte, width, height, stride int, method int, ta
 		err = errors.New("webpEncodeLosslessRGB: bad arguments")
 		return
 	}
-	if stride < width*3 && len(pix) < height*stride {
+	if !validCInts(method, targetSize, alphaQuality, autoFilter, threadLevel) {
 		err = errors.New("webpEncodeLosslessRGB: bad arguments")
+		return
+	}
+	if err = validatePackedPixels(pix, width, height, stride, 3); err != nil {
 		return
 	}
 
@@ -332,10 +461,8 @@ func webpEncodeLosslessRGB(pix []byte, width, height, stride int, method int, ta
 		err = errors.New("webpEncodeLosslessRGB: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	output = make([]byte, int(cptr_size))
-	copy(output, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(output):len(output)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	output, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 
@@ -348,8 +475,11 @@ func webpEncodeLosslessRGBA(exact int, pix []byte, width, height, stride int, me
 		err = errors.New("webpEncodeLosslessRGBA: bad arguments")
 		return
 	}
-	if stride < width*4 && len(pix) < height*stride {
+	if !validCInts(exact, method, targetSize, alphaQuality, autoFilter, threadLevel) {
 		err = errors.New("webpEncodeLosslessRGBA: bad arguments")
+		return
+	}
+	if err = validatePackedPixels(pix, width, height, stride, 4); err != nil {
 		return
 	}
 
@@ -364,10 +494,8 @@ func webpEncodeLosslessRGBA(exact int, pix []byte, width, height, stride int, me
 		err = errors.New("webpEncodeLosslessRGBA: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	output = make([]byte, int(cptr_size))
-	copy(output, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(output):len(output)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	output, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 
@@ -387,9 +515,7 @@ func webpGetEXIF(data []byte) (metadata []byte, err error) {
 		return
 	}
 	defer C.free(unsafe.Pointer(cptr))
-
-	metadata = make([]byte, int(cptr_size))
-	copy(metadata, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(metadata):len(metadata)])
+	metadata, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 func webpGetICCP(data []byte) (metadata []byte, err error) {
@@ -408,9 +534,7 @@ func webpGetICCP(data []byte) (metadata []byte, err error) {
 		return
 	}
 	defer C.free(unsafe.Pointer(cptr))
-
-	metadata = make([]byte, int(cptr_size))
-	copy(metadata, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(metadata):len(metadata)])
+	metadata, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 func webpGetXMP(data []byte) (metadata []byte, err error) {
@@ -429,9 +553,7 @@ func webpGetXMP(data []byte) (metadata []byte, err error) {
 		return
 	}
 	defer C.free(unsafe.Pointer(cptr))
-
-	metadata = make([]byte, int(cptr_size))
-	copy(metadata, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(metadata):len(metadata)])
+	metadata, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 func webpGetMetadata(data []byte, format string) (metadata []byte, err error) {
@@ -442,15 +564,31 @@ func webpGetMetadata(data []byte, format string) (metadata []byte, err error) {
 
 	switch format {
 	case "EXIF":
-		return webpGetEXIF(data)
+		return webpCopyMetadata(data, 1)
 	case "ICCP":
-		return webpGetICCP(data)
+		return webpCopyMetadata(data, 2)
 	case "XMP":
-		return webpGetXMP(data)
+		return webpCopyMetadata(data, 3)
 	default:
 		err = errors.New("webpGetMetadata: unknown format")
 		return
 	}
+}
+
+func webpCopyMetadata(data []byte, metadataType int) ([]byte, error) {
+	var size C.size_t
+	if C.webpGetMetadataSize((*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)), C.int(metadataType), &size) == 0 {
+		return nil, errors.New("webp: metadata not found")
+	}
+	n, ok := checkedSizeToInt(uint64(size))
+	if !ok || n == 0 {
+		return nil, errors.New("webp: invalid metadata size")
+	}
+	metadata := make([]byte, n)
+	if C.webpCopyMetadata((*C.uint8_t)(unsafe.Pointer(&data[0])), C.size_t(len(data)), C.int(metadataType), (*C.uint8_t)(unsafe.Pointer(&metadata[0])), size) == 0 {
+		return nil, errors.New("webp: metadata copy failed")
+	}
+	return metadata, nil
 }
 
 func webpSetEXIF(data, metadata []byte) (newData []byte, err error) {
@@ -469,10 +607,8 @@ func webpSetEXIF(data, metadata []byte) (newData []byte, err error) {
 		err = errors.New("webpSetEXIF: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	newData = make([]byte, int(cptr_size))
-	copy(newData, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(newData):len(newData)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	newData, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 func webpSetICCP(data, metadata []byte) (newData []byte, err error) {
@@ -491,10 +627,8 @@ func webpSetICCP(data, metadata []byte) (newData []byte, err error) {
 		err = errors.New("webpSetICCP: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	newData = make([]byte, int(cptr_size))
-	copy(newData, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(newData):len(newData)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	newData, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 func webpSetXMP(data, metadata []byte) (newData []byte, err error) {
@@ -513,10 +647,8 @@ func webpSetXMP(data, metadata []byte) (newData []byte, err error) {
 		err = errors.New("webpSetXMP: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	newData = make([]byte, int(cptr_size))
-	copy(newData, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(newData):len(newData)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	newData, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 func webpSetMetadata(data, metadata []byte, format string) (newData []byte, err error) {
@@ -553,10 +685,8 @@ func webpDelEXIF(data []byte) (newData []byte, err error) {
 		err = errors.New("webpDelEXIF: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	newData = make([]byte, int(cptr_size))
-	copy(newData, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(newData):len(newData)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	newData, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 func webpDelICCP(data []byte) (newData []byte, err error) {
@@ -574,10 +704,8 @@ func webpDelICCP(data []byte) (newData []byte, err error) {
 		err = errors.New("webpDelICCP: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	newData = make([]byte, int(cptr_size))
-	copy(newData, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(newData):len(newData)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	newData, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }
 func webpDelXMP(data []byte) (newData []byte, err error) {
@@ -595,9 +723,7 @@ func webpDelXMP(data []byte) (newData []byte, err error) {
 		err = errors.New("webpDelXMP: failed")
 		return
 	}
-	defer C.free(unsafe.Pointer(cptr))
-
-	newData = make([]byte, int(cptr_size))
-	copy(newData, ((*[1 << 30]byte)(unsafe.Pointer(cptr)))[0:len(newData):len(newData)])
+	defer C.WebPFree(unsafe.Pointer(cptr))
+	newData, err = copyWebPBytes(unsafe.Pointer(cptr), cptr_size)
 	return
 }

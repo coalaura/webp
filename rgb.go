@@ -1,4 +1,5 @@
 // Copyright 2014 <chaishushan{AT}gmail.com>. All rights reserved.
+// Copyright 2026 github.com/coalaura. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -154,6 +155,69 @@ func NewRGBImageFrom(m image.Image) *RGBImage {
 	// convert to RGBImage
 	b := m.Bounds()
 	rgb := NewRGBImage(b)
+	switch m := m.(type) {
+	case *image.NRGBA:
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			src, dst := m.PixOffset(b.Min.X, y), rgb.PixOffset(b.Min.X, y)
+			for x := 0; x < b.Dx(); x++ {
+				a := m.Pix[src+3]
+				rgb.XPix[dst], rgb.XPix[dst+1], rgb.XPix[dst+2] = mulAlpha8(m.Pix[src], a), mulAlpha8(m.Pix[src+1], a), mulAlpha8(m.Pix[src+2], a)
+				src, dst = src+4, dst+3
+			}
+		}
+		return rgb
+	case *image.YCbCr:
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			for x := b.Min.X; x < b.Max.X; x++ {
+				si, di := m.YOffset(x, y), rgb.PixOffset(x, y)
+				rgb.XPix[di], rgb.XPix[di+1], rgb.XPix[di+2] = color.YCbCrToRGB(m.Y[si], m.Cb[m.COffset(x, y)], m.Cr[m.COffset(x, y)])
+			}
+		}
+		return rgb
+	case *image.Gray16:
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			src, dst := m.PixOffset(b.Min.X, y), rgb.PixOffset(b.Min.X, y)
+			for x := 0; x < b.Dx(); x++ {
+				v := m.Pix[src]
+				rgb.XPix[dst], rgb.XPix[dst+1], rgb.XPix[dst+2] = v, v, v
+				src, dst = src+2, dst+3
+			}
+		}
+		return rgb
+	case *image.RGBA64:
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			src, dst := m.PixOffset(b.Min.X, y), rgb.PixOffset(b.Min.X, y)
+			for x := 0; x < b.Dx(); x++ {
+				rgb.XPix[dst], rgb.XPix[dst+1], rgb.XPix[dst+2] = m.Pix[src], m.Pix[src+2], m.Pix[src+4]
+				src, dst = src+8, dst+3
+			}
+		}
+		return rgb
+	case *image.NRGBA64:
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			src, dst := m.PixOffset(b.Min.X, y), rgb.PixOffset(b.Min.X, y)
+			for x := 0; x < b.Dx(); x++ {
+				r, g, bl, a := uint16(m.Pix[src])<<8|uint16(m.Pix[src+1]), uint16(m.Pix[src+2])<<8|uint16(m.Pix[src+3]), uint16(m.Pix[src+4])<<8|uint16(m.Pix[src+5]), uint16(m.Pix[src+6])<<8|uint16(m.Pix[src+7])
+				rgb.XPix[dst], rgb.XPix[dst+1], rgb.XPix[dst+2] = mulAlpha16To8(r, a), mulAlpha16To8(g, a), mulAlpha16To8(bl, a)
+				src, dst = src+8, dst+3
+			}
+		}
+		return rgb
+	case *image.Paletted:
+		palette := make([]color.RGBA, len(m.Palette))
+		for i, c := range m.Palette {
+			palette[i] = color.RGBAModel.Convert(c).(color.RGBA)
+		}
+		for y := b.Min.Y; y < b.Max.Y; y++ {
+			src, dst := m.PixOffset(b.Min.X, y), rgb.PixOffset(b.Min.X, y)
+			for x := 0; x < b.Dx(); x++ {
+				c := palette[m.Pix[src]]
+				rgb.XPix[dst], rgb.XPix[dst+1], rgb.XPix[dst+2] = c.R, c.G, c.B
+				src, dst = src+1, dst+3
+			}
+		}
+		return rgb
+	}
 	for y := b.Min.Y; y < b.Max.Y; y++ {
 		for x := b.Min.X; x < b.Max.X; x++ {
 			pr, pg, pb, _ := m.At(x, y).RGBA()

@@ -1,4 +1,5 @@
 // Copyright 2014 <chaishushan{AT}gmail.com>. All rights reserved.
+// Copyright 2026 github.com/coalaura. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -32,23 +33,36 @@ uint8_t* webpDecodeRGBA(
 	int* width, int* height
 );
 
+int webpDecodeRGBIntoDefault(const uint8_t* data, size_t data_size,
+	int width, int height, int outStride, uint8_t* out, int use_threads
+);
+int webpDecodeRGBAIntoDefault(const uint8_t* data, size_t data_size,
+	int width, int height, int outStride, uint8_t* out, int use_threads
+);
 int webpDecodeRGBInto(
 	const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out, int use_threads
+	int width, int height, int outStride, uint8_t* out, int use_threads,
+	int crop_left, int crop_top, int crop_width, int crop_height,
+	int scaled_width, int scaled_height
 );
 int webpDecodeRGBAInto(
 	const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out, int use_threads
+	int width, int height, int outStride, uint8_t* out, int use_threads,
+	int crop_left, int crop_top, int crop_width, int crop_height,
+	int scaled_width, int scaled_height
 );
 
 int webpDecodeGrayToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out, int use_threads
+	int width, int height, int outStride, uint8_t* out, int use_threads,
+	int crop_left, int crop_top, int crop_width, int crop_height
 );
 int webpDecodeRGBToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out, int use_threads
+	int width, int height, int outStride, uint8_t* out, int use_threads,
+	int crop_left, int crop_top, int crop_width, int crop_height
 );
 int webpDecodeRGBAToSize(const uint8_t* data, size_t data_size,
-	int width, int height, int outStride, uint8_t* out, int use_threads
+	int width, int height, int outStride, uint8_t* out, int use_threads,
+	int crop_left, int crop_top, int crop_width, int crop_height
 );
 
 uint8_t* webpEncodeGray(
@@ -77,9 +91,18 @@ uint8_t* webpEncodeLosslessRGBA(
 	int method, int target_size, int alpha_quality, int autofilter, int thread_level, size_t* output_size
 );
 
+int webpEncodeToWriter(
+	const uint8_t* pixels, int width, int height, int stride, int mode,
+	int lossless, int exact, int lossless_level, float quality_factor,
+	int method, int target_size, int alpha_quality, int autofilter,
+	int thread_level, void* custom_ptr
+);
+
 char* webpGetEXIF(const uint8_t* data, size_t data_size, size_t* metadata_size);
 char* webpGetICCP(const uint8_t* data, size_t data_size, size_t* metadata_size);
 char* webpGetXMP(const uint8_t* data, size_t data_size, size_t* metadata_size);
+int webpGetMetadataSize(const uint8_t* data, size_t data_size, int type, size_t* metadata_size);
+int webpCopyMetadata(const uint8_t* data, size_t data_size, int type, uint8_t* output, size_t output_size);
 
 uint8_t* webpSetEXIF(const uint8_t* data, size_t data_size, const char* metadata, size_t metadata_size, size_t* new_data_size);
 uint8_t* webpSetICCP(const uint8_t* data, size_t data_size, const char* metadata, size_t metadata_size, size_t* new_data_size);

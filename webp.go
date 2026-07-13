@@ -1,4 +1,5 @@
 // Copyright 2014 <chaishushan{AT}gmail.com>. All rights reserved.
+// Copyright 2026 github.com/coalaura. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -26,6 +27,21 @@ func GetInfo(data []byte) (width, height int, hasAlpha bool, hasAnimation bool, 
 // DecodeGray decodes a WebP payload into a Gray image.
 // If opt is nil, defaults are used.
 func DecodeGray(data []byte, opt *DecodeOptions) (m *image.Gray, err error) {
+	if opt != nil && (opt.Crop != (image.Rectangle{}) || opt.Width != 0 || opt.Height != 0 || opt.UseThreads) {
+		width, height, _, _, _, infoErr := webpGetInfo(data)
+		if infoErr != nil {
+			return nil, infoErr
+		}
+		transform, transformErr := decodeTransformFor(width, height, opt, 0, 0)
+		if transformErr != nil {
+			return nil, transformErr
+		}
+		pix, decodeErr := webpDecodeGrayToSize(data, transform.width, transform.height, opt)
+		if decodeErr != nil {
+			return nil, decodeErr
+		}
+		return &image.Gray{Pix: pix, Stride: transform.width, Rect: image.Rect(0, 0, transform.width, transform.height)}, nil
+	}
 	pix, w, h, err := webpDecodeGray(data)
 	if err != nil {
 		return
@@ -41,9 +57,7 @@ func DecodeGray(data []byte, opt *DecodeOptions) (m *image.Gray, err error) {
 // DecodeRGB decodes a WebP payload into an RGBImage.
 // If opt is nil, defaults are used.
 func DecodeRGB(data []byte, opt *DecodeOptions) (m *RGBImage, err error) {
-	useThreads := useDecodeThreads(opt)
-
-	pix, w, h, err := webpDecodeRGB(data, useThreads)
+	pix, w, h, err := webpDecodeRGB(data, opt)
 	if err != nil {
 		return
 	}
@@ -58,9 +72,7 @@ func DecodeRGB(data []byte, opt *DecodeOptions) (m *RGBImage, err error) {
 // DecodeRGBA decodes a WebP payload into an RGBA image.
 // If opt is nil, defaults are used.
 func DecodeRGBA(data []byte, opt *DecodeOptions) (m *image.RGBA, err error) {
-	useThreads := useDecodeThreads(opt)
-
-	pix, w, h, err := webpDecodeRGBA(data, useThreads)
+	pix, w, h, err := webpDecodeRGBA(data, opt)
 	if err != nil {
 		return
 	}
@@ -77,7 +89,7 @@ func DecodeRGBA(data []byte, opt *DecodeOptions) (m *image.RGBA, err error) {
 // require less memory compared to decoding a full-size image and then resizing it.
 // If opt is nil, defaults are used.
 func DecodeGrayToSize(data []byte, width, height int, opt *DecodeOptions) (m *image.Gray, err error) {
-	pix, err := webpDecodeGrayToSize(data, width, height, useDecodeThreads(opt))
+	pix, err := webpDecodeGrayToSize(data, width, height, opt)
 	if err != nil {
 		return
 	}
@@ -92,7 +104,7 @@ func DecodeGrayToSize(data []byte, width, height int, opt *DecodeOptions) (m *im
 // DecodeRGBToSize decodes an RGB image scaled to the given dimensions.
 // If opt is nil, defaults are used.
 func DecodeRGBToSize(data []byte, width, height int, opt *DecodeOptions) (m *RGBImage, err error) {
-	pix, err := webpDecodeRGBToSize(data, width, height, useDecodeThreads(opt))
+	pix, err := webpDecodeRGBToSize(data, width, height, opt)
 	if err != nil {
 		return
 	}
@@ -107,7 +119,7 @@ func DecodeRGBToSize(data []byte, width, height int, opt *DecodeOptions) (m *RGB
 // DecodeRGBAToSize decodes an RGBA image scaled to the given dimensions.
 // If opt is nil, defaults are used.
 func DecodeRGBAToSize(data []byte, width, height int, opt *DecodeOptions) (m *image.RGBA, err error) {
-	pix, err := webpDecodeRGBAToSize(data, width, height, useDecodeThreads(opt))
+	pix, err := webpDecodeRGBAToSize(data, width, height, opt)
 	if err != nil {
 		return
 	}

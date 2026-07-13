@@ -1,33 +1,34 @@
 # Copyright 2015 ChaiShushan <chaishushan{AT}gmail.com>. All rights reserved.
+# Copyright 2026 github.com/coalaura. All rights reserved.
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
 # go test -bench=Decode_.*coalaura_webp$ -benchtime=5s
 
 # name, run times, speed, ns/op
-1_webp_a                                           6055            979682 ns/op
-1_webp_ll                                          5461           1081204 ns/op
-2_webp_a                                           5068           1168013 ns/op
-2_webp_ll                                          9014            674276 ns/op
-3_webp_a                                           1316           4524500 ns/op
-3_webp_ll                                          2227           2649617 ns/op
-4_webp_a                                           7530            775275 ns/op
-4_webp_ll                                          9686            606368 ns/op
-5_webp_a                                           2908           2052550 ns/op
-5_webp_ll                                          6098            966620 ns/op
-blue_purple_pink_large_lossless                    2469           2419740 ns/op
-blue_purple_pink_large_no_filter_lossy             3487           1739369 ns/op
-blue_purple_pink_large_normal_filter_lossy         3310           1820575 ns/op
-blue_purple_pink_large_simple_filter_lossy         3381           1783782 ns/op
-blue_purple_pink_lossless                         33072            179561 ns/op
-blue_purple_pink_lossy                            82366             72529 ns/op
-gopher_doc_1bpp_lossless                         409287             14888 ns/op
-gopher_doc_2bpp_lossless                         340749             18001 ns/op
-gopher_doc_4bpp_lossless                         307650             19234 ns/op
-gopher_doc_8bpp_lossless                         224851             26594 ns/op
-tux_lossless                                       8586            692867 ns/op
-video_001_lossy                                   69662             85340 ns/op
-video_001                                         70614             85393 ns/op
-yellow_rose_lossless                               5583           1070813 ns/op
-yellow_rose_lossy_with_alpha                       8605            687970 ns/op
-yellow_rose_lossy                                  8814            676036 ns/op
+1_webp_a                                           6098            976950 ns/op
+1_webp_ll                                          5587           1058538 ns/op
+2_webp_a                                           5151           1155463 ns/op
+2_webp_ll                                          8913            656069 ns/op
+3_webp_a                                           1335           4496056 ns/op
+3_webp_ll                                          2244           2638210 ns/op
+4_webp_a                                           7513            777401 ns/op
+4_webp_ll                                          9769            599874 ns/op
+5_webp_a                                           2940           2036460 ns/op
+5_webp_ll                                          6280            959442 ns/op
+blue_purple_pink_large_lossless                    2529           2355899 ns/op
+blue_purple_pink_large_no_filter_lossy             3394           1774722 ns/op
+blue_purple_pink_large_normal_filter_lossy         3208           1888290 ns/op
+blue_purple_pink_large_simple_filter_lossy         3297           1817382 ns/op
+blue_purple_pink_lossless                         33229            179906 ns/op
+blue_purple_pink_lossy                            79746             74783 ns/op
+gopher_doc_1bpp_lossless                         385527             15306 ns/op
+gopher_doc_2bpp_lossless                         326408             18427 ns/op
+gopher_doc_4bpp_lossless                         301513             19723 ns/op
+gopher_doc_8bpp_lossless                         221755             26745 ns/op
+tux_lossless                                       8830            675954 ns/op
+video_001_lossy                                   70778             84569 ns/op
+video_001                                         71422             84871 ns/op
+yellow_rose_lossless                               5596           1087953 ns/op
+yellow_rose_lossy_with_alpha                       8250            693275 ns/op
+yellow_rose_lossy                                  8775            678097 ns/op

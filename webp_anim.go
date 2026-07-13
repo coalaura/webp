@@ -1,3 +1,7 @@
+// Copyright 2026 github.com/coalaura. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package webp
 
 /*
@@ -22,50 +26,23 @@ import (
 	"image/color"
 	"io"
 	"runtime"
-	"sync"
 	"unsafe"
 )
-
-type cBuffer struct {
-	ptr unsafe.Pointer
-	cap int
-}
-
-var cBufferPool = sync.Pool{
-	New: func() interface{} {
-		return &cBuffer{}
-	},
-}
-
-func borrowCBuffer(size int) (*cBuffer, unsafe.Pointer, error) {
-	buf := cBufferPool.Get().(*cBuffer)
-	if buf.cap < size {
-		if buf.ptr != nil {
-			C.free(buf.ptr)
-		}
-		buf.ptr = C.malloc(C.size_t(size))
-		if buf.ptr == nil {
-			buf.cap = 0
-			cBufferPool.Put(buf)
-			return nil, nil, errors.New("webp: alloc failed")
-		}
-		buf.cap = size
-	}
-	return buf, buf.ptr, nil
-}
-
-func releaseCBuffer(buf *cBuffer) {
-	if buf == nil {
-		return
-	}
-	cBufferPool.Put(buf)
-}
 
 // Animation represents an animated WebP image.
 // Delay values are in milliseconds.
 type Animation struct {
 	Image      []image.Image
 	Delay      []int
+	LoopCount  int
+	Background color.RGBA
+}
+
+// AnimationInfo describes the canvas and playback settings supplied to DecodeFrames.
+type AnimationInfo struct {
+	Width      int
+	Height     int
+	FrameCount int
 	LoopCount  int
 	Background color.RGBA
 }
@@ -86,39 +63,73 @@ func DecodeAll(r io.Reader, opt *DecodeOptions) (*Animation, error) {
 }
 
 func decodeAll(data []byte, useThreads bool) (*Animation, error) {
+	frames := make([]image.Image, 0)
+	delays := make([]int, 0)
+	info, err := decodeFrames(data, useThreads, func(frame *image.RGBA, delay int) error {
+		pix := make([]byte, len(frame.Pix))
+		copy(pix, frame.Pix)
+		frames = append(frames, &image.RGBA{Pix: pix, Stride: frame.Stride, Rect: frame.Rect})
+		delays = append(delays, delay)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &Animation{Image: frames, Delay: delays, LoopCount: info.LoopCount, Background: info.Background}, nil
+}
+
+// DecodeFrames calls fn for each composited RGBA animation frame. The frame
+// buffer is owned by the decoder and is only valid until fn returns.
+func DecodeFrames(r io.Reader, opt *DecodeOptions, fn func(frame *image.RGBA, delay int) error) (AnimationInfo, error) {
+	if fn == nil {
+		return AnimationInfo{}, errors.New("webp: DecodeFrames, callback is nil")
+	}
+	data, release, err := readAllPooled(r)
+	if err != nil {
+		return AnimationInfo{}, err
+	}
+	defer release()
+	return decodeFrames(data, useDecodeThreads(opt), fn)
+}
+
+func decodeFrames(data []byte, useThreads bool, fn func(frame *image.RGBA, delay int) error) (AnimationInfo, error) {
 	if len(data) == 0 {
-		return nil, errors.New("webp: DecodeAll, empty data")
+		return AnimationInfo{}, errors.New("webp: DecodeAll, empty data")
 	}
 
 	var decOptions C.WebPAnimDecoderOptions
 	if C.WebPAnimDecoderOptionsInit(&decOptions) == 0 {
-		return nil, errors.New("webp: DecodeAll, init decoder options failed")
+		return AnimationInfo{}, errors.New("webp: DecodeAll, init decoder options failed")
 	}
 	decOptions.color_mode = C.MODE_RGBA
 	decOptions.use_threads = C.int(boolToInt(useThreads))
 
-	buf, cptr, err := borrowCBuffer(len(data))
-	if err != nil {
-		return nil, err
+	cptr := C.malloc(C.size_t(len(data)))
+	if cptr == nil {
+		return AnimationInfo{}, errors.New("webp: DecodeAll, alloc input failed")
 	}
-	defer releaseCBuffer(buf)
+	defer C.free(cptr)
 	C.memcpy(cptr, unsafe.Pointer(&data[0]), C.size_t(len(data)))
 	runtime.KeepAlive(data)
 	webpData := C.WebPData{bytes: (*C.uint8_t)(cptr), size: C.size_t(len(data))}
 	dec := C.WebPAnimDecoderNew(&webpData, &decOptions)
 	if dec == nil {
-		return nil, errors.New("webp: DecodeAll, create decoder failed")
+		return AnimationInfo{}, errors.New("webp: DecodeAll, create decoder failed")
 	}
 	defer C.WebPAnimDecoderDelete(dec)
 
 	var info C.WebPAnimInfo
 	if C.WebPAnimDecoderGetInfo(dec, &info) == 0 {
-		return nil, errors.New("webp: DecodeAll, get info failed")
+		return AnimationInfo{}, errors.New("webp: DecodeAll, get info failed")
 	}
 
 	frameCount := int(info.frame_count)
 	width := int(info.canvas_width)
 	height := int(info.canvas_height)
+	stride, frameSize, sizeErr := decodeBufferSize(width, height, 4)
+	if sizeErr != nil || frameCount < 0 {
+		return AnimationInfo{}, errors.New("webp: DecodeAll, invalid animation dimensions")
+	}
 
 	delays := make([]int, 0, frameCount)
 	demux := C.WebPAnimDecoderGetDemuxer(dec)
@@ -135,42 +146,24 @@ func decodeAll(data []byte, useThreads bool) (*Animation, error) {
 		}
 	}
 
-	frames := make([]image.Image, 0, frameCount)
-	timestamps := make([]int, 0, frameCount)
+	index := 0
 	for C.WebPAnimDecoderHasMoreFrames(dec) != 0 {
 		var buf *C.uint8_t
 		var timestamp C.int
 		if C.WebPAnimDecoderGetNext(dec, &buf, &timestamp) == 0 {
-			return nil, errors.New("webp: DecodeAll, decode frame failed")
+			return AnimationInfo{}, errors.New("webp: DecodeAll, decode frame failed")
 		}
-		timestamps = append(timestamps, int(timestamp))
-		size := width * height * 4
-		pix := make([]byte, size)
-		copy(pix, ((*[1 << 30]byte)(unsafe.Pointer(buf)))[0:size:size])
-		frames = append(frames, &image.RGBA{
-			Pix:    pix,
-			Stride: 4 * width,
-			Rect:   image.Rect(0, 0, width, height),
-		})
-	}
-
-	if len(delays) != len(frames) {
-		delays = make([]int, len(frames))
-		for i := range frames {
-			if i+1 < len(timestamps) {
-				delays[i] = timestamps[i+1] - timestamps[i]
-			} else if i > 0 {
-				delays[i] = timestamps[i] - timestamps[i-1]
-			}
+		delay := 0
+		if index < len(delays) {
+			delay = delays[index]
 		}
+		frame := &image.RGBA{Pix: unsafe.Slice((*byte)(unsafe.Pointer(buf)), frameSize), Stride: stride, Rect: image.Rect(0, 0, width, height)}
+		if err := fn(frame, delay); err != nil {
+			return AnimationInfo{}, err
+		}
+		index++
 	}
-
-	return &Animation{
-		Image:      frames,
-		Delay:      delays,
-		LoopCount:  int(info.loop_count),
-		Background: rgbaFromWebPColor(uint32(info.bgcolor)),
-	}, nil
+	return AnimationInfo{Width: width, Height: height, FrameCount: index, LoopCount: int(info.loop_count), Background: rgbaFromWebPColor(uint32(info.bgcolor))}, nil
 }
 
 // EncodeAll writes all frames in anim to w as an animated WEBP.
@@ -326,9 +319,11 @@ func EncodeAll(w io.Writer, anim *Animation, opt *Options) error {
 	if out.bytes == nil || out.size == 0 {
 		return errors.New("webp: EncodeAll, empty output")
 	}
-	data := C.GoBytes(unsafe.Pointer(out.bytes), C.int(out.size))
-	_, err := w.Write(data)
-	return err
+	size, ok := checkedSizeToInt(uint64(out.size))
+	if !ok {
+		return errors.New("webp: EncodeAll, output is too large")
+	}
+	return writeAll(w, unsafe.Slice((*byte)(unsafe.Pointer(out.bytes)), size))
 }
 
 func rgbaFromWebPColor(argb uint32) color.RGBA {

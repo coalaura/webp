@@ -1,4 +1,5 @@
 // Copyright 2016 <chaishushan{AT}gmail.com>. All rights reserved.
+// Copyright 2026 github.com/coalaura. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -79,6 +80,7 @@ func C_webpDecodeGrayToSize(
 		(C.int)(outStride),
 		(*C.uint8_t)(out),
 		(C.int)(use_threads),
+		0, 0, 0, 0,
 	))
 }
 
@@ -93,6 +95,7 @@ func C_webpDecodeRGBToSize(
 		(C.int)(outStride),
 		(*C.uint8_t)(out),
 		(C.int)(use_threads),
+		0, 0, 0, 0,
 	))
 }
 
@@ -107,6 +110,7 @@ func C_webpDecodeRGBAToSize(
 		(C.int)(outStride),
 		(*C.uint8_t)(out),
 		(C.int)(use_threads),
+		0, 0, 0, 0,
 	))
 }
 

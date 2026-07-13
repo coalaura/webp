@@ -1,4 +1,5 @@
 // Copyright 2014 <chaishushan{AT}gmail.com>. All rights reserved.
+// Copyright 2026 github.com/coalaura. All rights reserved.
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
@@ -28,7 +29,19 @@ type Config struct {
 // DecodeOptions controls WebP decoding behavior.
 // A nil options value uses defaults.
 type DecodeOptions struct {
-	UseThreads bool // Enable libwebp multi-threading (default true)
+	UseThreads bool            // Enable libwebp multi-threading (default true)
+	Crop       image.Rectangle // Optional source-space crop rectangle.
+	Width      int             // Optional decoded width; must be paired with Height.
+	Height     int             // Optional decoded height; must be paired with Width.
+}
+
+func readWebPHeader(r io.Reader) ([]byte, error) {
+	var header [maxWebpHeaderSize]byte
+	n, err := io.ReadFull(r, header[:])
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return nil, err
+	}
+	return header[:n], nil
 }
 
 // LoadConfigEx reads a file header and returns Config metadata.
@@ -39,12 +52,10 @@ func LoadConfigEx(name string) (config Config, err error) {
 	}
 	defer f.Close()
 
-	var header [maxWebpHeaderSize]byte
-	n, err := f.Read(header[:])
-	if err != nil && err != io.EOF {
+	headerSlice, err := readWebPHeader(f)
+	if err != nil {
 		return
 	}
-	headerSlice := header[:n]
 	width, height, hasAlpha, hasAnimation, format, err := GetInfo(headerSlice)
 	if err != nil {
 		return
@@ -67,12 +78,10 @@ func LoadConfig(name string) (config image.Config, err error) {
 	}
 	defer f.Close()
 
-	var header [maxWebpHeaderSize]byte
-	n, err := f.Read(header[:])
-	if err != nil && err != io.EOF {
+	headerSlice, err := readWebPHeader(f)
+	if err != nil {
 		return
 	}
-	headerSlice := header[:n]
 	width, height, _, _, _, err := GetInfo(headerSlice)
 	if err != nil {
 		return
@@ -100,8 +109,11 @@ func Load(name string) (m image.Image, err error) {
 		return nil, errors.New("webp: Load, file size is too large (> 2GB)")
 	}
 
+	if fi.Size() < 0 || fi.Size() > int64(^uint(0)>>1) {
+		return nil, errors.New("webp: Load, file size cannot be represented")
+	}
 	data := make([]byte, int(fi.Size()))
-	if _, err = f.Read(data); err != nil {
+	if _, err = io.ReadFull(f, data); err != nil {
 		return nil, err
 	}
 	if m, err = DecodeRGBA(data, nil); err != nil {
@@ -113,12 +125,10 @@ func Load(name string) (m image.Image, err error) {
 // DecodeConfigEx returns the color model, dimensions and animation flag of a WEBP image
 // without decoding the entire image.
 func DecodeConfigEx(r io.Reader) (config Config, err error) {
-	var header [maxWebpHeaderSize]byte
-	n, err := r.Read(header[:])
-	if err != nil && err != io.EOF {
+	headerSlice, err := readWebPHeader(r)
+	if err != nil {
 		return
 	}
-	headerSlice := header[:n]
 	width, height, hasAlpha, hasAnimation, format, err := GetInfo(headerSlice)
 	if err != nil {
 		return
@@ -135,12 +145,10 @@ func DecodeConfigEx(r io.Reader) (config Config, err error) {
 // DecodeConfig returns the color model and dimensions of a WEBP image without
 // decoding the entire image.
 func DecodeConfig(r io.Reader) (config image.Config, err error) {
-	var header [maxWebpHeaderSize]byte
-	n, err := r.Read(header[:])
-	if err != nil && err != io.EOF {
+	headerSlice, err := readWebPHeader(r)
+	if err != nil {
 		return
 	}
-	headerSlice := header[:n]
 	width, height, _, _, _, err := GetInfo(headerSlice)
 	if err != nil {
 		return
